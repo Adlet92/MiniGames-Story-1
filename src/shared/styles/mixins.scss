@@ -1,0 +1,25 @@
+@use 'tokens' as t;
+
+@mixin tablet {
+  @media (max-width: t.$breakpoint-tablet) {
+    @content;
+  }
+}
+
+@mixin mobile {
+  @media (max-width: t.$breakpoint-mobile) {
+    @content;
+  }
+}
+
+@mixin button {
+  padding: t.$button-y t.$button-x;
+  border: t.$border-width solid t.$color-ink;
+  border-radius: t.$radius-small;
+  color: t.$color-ink;
+  background: transparent;
+  font-size: t.$font-label;
+  font-weight: t.$weight-bold;
+  white-space: nowrap;
+  cursor: pointer;
+}

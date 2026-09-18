@@ -1,0 +1,19 @@
+@use '../../shared/styles/tokens' as t;
+@use '../../shared/styles/mixins' as m;
+
+.auth-dialog {
+  width: min(t.$dialog-width, calc(100% - t.$size-4));
+  padding: t.$size-3;
+  border: t.$border-width solid t.$color-ink;
+  border-radius: t.$radius-small;
+  background: t.$color-bg;
+  color: t.$color-ink;
+
+  &::backdrop {
+    background: t.$overlay-color;
+  }
+
+  button {
+    @include m.button;
+  }
+}
