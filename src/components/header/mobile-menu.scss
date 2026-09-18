@@ -1,0 +1,179 @@
+@use '../../shared/styles/tokens' as t;
+@use '../../shared/styles/mixins' as m;
+
+.mobile-menu {
+  --menu-duration: #{t.$menu-duration};
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  padding: t.$size-3;
+  border: 0;
+  border-left: t.$border-width solid t.$color-ink;
+  background: t.$color-menu-bg;
+  color: t.$color-white;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  opacity: 0;
+  transform: translateY(-#{t.$size-1});
+  transition:
+    opacity t.$menu-duration ease,
+    transform t.$menu-duration ease;
+
+  &[open] {
+    display: flex;
+    flex-direction: column;
+    gap: t.$size-4;
+  }
+
+  &--open {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  &::backdrop {
+    background: t.$color-menu-bg;
+  }
+
+  &__top {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: t.$size-2;
+  }
+
+  &__brand {
+    display: flex;
+    align-items: center;
+    gap: t.$size-1;
+    color: t.$color-white;
+    font-size: t.$font-brand-small;
+    font-weight: t.$weight-bold;
+    text-decoration: none;
+  }
+
+  &__brand img {
+    display: block;
+    width: t.$icon-size;
+    height: t.$icon-size;
+    border-radius: t.$radius-small;
+    background: t.$color-white;
+  }
+
+  &__close {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: t.$icon-size;
+    height: t.$icon-size;
+    padding: 0;
+    border: 0;
+    border-radius: t.$radius-small;
+    background: t.$color-menu-close;
+    color: t.$color-white;
+    font-size: t.$font-brand-large;
+    cursor: pointer;
+    transition: background-color t.$menu-duration ease;
+  }
+
+  &__close span {
+    display: block;
+    transform: rotate(t.$menu-close-angle);
+    transition: transform t.$menu-duration ease;
+  }
+
+  &--open &__close span {
+    transform: rotate(0deg);
+  }
+
+  &__nav {
+    display: flex;
+    flex: 1 0 auto;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: t.$size-3;
+  }
+
+  &__nav a {
+    color: t.$color-menu-muted;
+    font-size: t.$font-menu-link;
+    font-weight: t.$weight-medium;
+    text-decoration: none;
+  }
+
+  &__nav a[aria-current='page'] {
+    color: t.$color-primary;
+    font-weight: t.$weight-bold;
+  }
+
+  &__buttons {
+    display: flex;
+    flex-shrink: 0;
+    flex-direction: column;
+    gap: t.$size-2;
+    width: min(100%, t.$menu-button-width);
+  }
+
+  &__button {
+    @include m.button;
+    width: 100%;
+  }
+
+  &__button--login {
+    border-color: t.$color-white;
+    color: t.$color-white;
+  }
+
+  &__button--signup {
+    background: t.$color-primary;
+  }
+
+  &__nav a:hover,
+  &__brand:hover {
+    text-decoration: underline;
+  }
+
+  &__nav a:active {
+    color: t.$color-white;
+  }
+
+  &__button:hover,
+  &__close:hover {
+    background: t.$color-menu-close;
+  }
+
+  &__button--signup:hover,
+  &__close:active {
+    background: t.$color-primary-hover;
+    color: t.$color-ink;
+  }
+
+  &__button:active {
+    background: t.$color-primary;
+    color: t.$color-ink;
+  }
+
+  &__button:disabled,
+  &__close:disabled {
+    opacity: t.$opacity-disabled;
+    cursor: not-allowed;
+  }
+
+  :focus-visible {
+    outline-color: t.$color-primary;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    --menu-duration: 0ms;
+    transition: none;
+    &__close,
+    &__close span {
+      transition: none;
+    }
+  }
+}

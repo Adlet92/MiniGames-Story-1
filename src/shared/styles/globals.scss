@@ -25,3 +25,7 @@ input {
   outline: t.$border-width solid t.$color-ink;
   outline-offset: t.$size-1;
 }
+
+:root {
+  --breakpoint-tablet: #{t.$breakpoint-tablet};
+}
