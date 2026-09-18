@@ -1,9 +1,9 @@
 import js from '@eslint/js';
+import prettier from 'eslint-config-prettier';
 import unicorn from 'eslint-plugin-unicorn';
 import { defineConfig } from 'eslint/config';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
-
 export default defineConfig([
   {
     ignores: ['dist/**', 'node_modules/**'],
@@ -12,11 +12,7 @@ export default defineConfig([
   {
     files: ['src/**/*.ts'],
 
-    extends: [
-      js.configs.recommended,
-      tseslint.configs.recommended,
-      unicorn.configs.recommended,
-    ],
+    extends: [js.configs.recommended, tseslint.configs.recommended, unicorn.configs.recommended],
 
     languageOptions: {
       globals: globals.browser,
@@ -46,4 +42,5 @@ export default defineConfig([
       '@typescript-eslint/no-inferrable-types': 'off',
     },
   },
+  prettier,
 ]);
