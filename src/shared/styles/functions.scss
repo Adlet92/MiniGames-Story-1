@@ -1,0 +1,8 @@
+@use 'sass:math';
+
+// Interpolate between design tokens at the specified viewport widths.
+@function fluid($min, $max, $min-width, $max-width) {
+  $slope: math.div($max - $min, $max-width - $min-width);
+
+  @return clamp($min, calc(#{$min} + (100vw - #{$min-width}) * #{$slope}), $max);
+}

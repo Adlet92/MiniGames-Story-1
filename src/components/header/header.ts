@@ -1,6 +1,8 @@
 import brandUrl from '../../assets/icons/brand.png';
 import burgerUrl from '../../assets/icons/burger.svg';
 import './header.scss';
+import type { MobileMenu } from './mobile-menu';
+import { createMobileMenu } from './mobile-menu';
 
 export type AuthMode = 'login' | 'signup';
 
@@ -45,15 +47,16 @@ export function createHeader(options: HeaderOptions): HTMLElement {
   navigation.id = 'header-navigation';
   navigation.setAttribute('aria-label', 'Main navigation');
   const labels: string[] = ['Home', 'Library', 'Tournaments', 'Community'];
-  for (const label of labels) {
+  const links: HTMLAnchorElement[] = labels.map((label: string): HTMLAnchorElement => {
     const link: HTMLAnchorElement = document.createElement('a');
     link.href = '#/';
     link.textContent = label;
     if (label === 'Home') {
       link.setAttribute('aria-current', 'page');
     }
-    navigation.append(link);
-  }
+    return link;
+  });
+  navigation.append(...links);
 
   const buttons: HTMLDivElement = document.createElement('div');
   buttons.className = 'header__buttons';
@@ -66,36 +69,24 @@ export function createHeader(options: HeaderOptions): HTMLElement {
   burger.type = 'button';
   burger.className = 'header__burger';
   burger.setAttribute('aria-label', 'Open navigation');
-  burger.setAttribute('aria-controls', navigation.id);
+  burger.setAttribute('aria-controls', 'mobile-navigation');
+  burger.setAttribute('aria-haspopup', 'dialog');
   burger.setAttribute('aria-expanded', 'false');
   const burgerIcon: HTMLImageElement = document.createElement('img');
   burgerIcon.src = burgerUrl;
   burgerIcon.alt = '';
   burgerIcon.width = 32;
   burgerIcon.height = 32;
-  burger.append(burgerIcon);
+  const burgerCross: HTMLSpanElement = document.createElement('span');
+  burgerCross.className = 'header__burger-cross';
+  burgerCross.textContent = '×';
+  burgerCross.setAttribute('aria-hidden', 'true');
+  burger.append(burgerIcon, burgerCross);
 
-  function closeMenu(): void {
-    header.classList.remove('header--open');
-    burger.setAttribute('aria-expanded', 'false');
-    burger.setAttribute('aria-label', 'Open navigation');
-  }
-
-  burger.addEventListener('click', (): void => {
-    const isOpen: boolean = header.classList.toggle('header--open');
-    burger.setAttribute('aria-expanded', String(isOpen));
-    burger.setAttribute('aria-label', isOpen ? 'Close navigation' : 'Open navigation');
-  });
-  navigation.addEventListener('click', closeMenu);
-  header.addEventListener('keydown', (event: KeyboardEvent): void => {
-    if (event.key === 'Escape') {
-      return;
-    }
-    closeMenu();
-    burger.focus();
-  });
+  const menu: MobileMenu = createMobileMenu(burger, options);
+  burger.addEventListener('click', menu.open);
 
   actions.append(navigation, buttons, burger);
-  header.append(brand, actions);
+  header.append(brand, actions, menu.element);
   return header;
 }
