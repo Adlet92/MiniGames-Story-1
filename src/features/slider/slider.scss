@@ -1,0 +1,226 @@
+@use '../../shared/styles/tokens' as t;
+@use '../../shared/styles/functions' as f;
+
+.slider {
+  display: flex;
+  flex-direction: column;
+  gap: f.fluid(t.$size-3, t.$size-5, t.$breakpoint-tablet, t.$breakpoint-desktop);
+  width: 100%;
+  max-width: t.$breakpoint-desktop;
+  margin-inline: auto;
+  padding: f.fluid(t.$size-3, t.$size-5, t.$breakpoint-tablet, t.$breakpoint-desktop)
+    f.fluid(t.$size-5, t.$carousel-padding-desktop, t.$breakpoint-tablet, t.$breakpoint-desktop);
+  background: t.$color-bg;
+
+  &__header,
+  &__heading-group,
+  &__arrows {
+    display: flex;
+    align-items: center;
+  }
+
+  &__header {
+    justify-content: space-between;
+    gap: t.$size-2;
+  }
+
+  &__heading-group {
+    min-width: 0;
+    gap: t.$size-1;
+  }
+
+  &__accent {
+    flex: none;
+    width: t.$carousel-accent-width;
+    height: t.$carousel-accent-height-desktop;
+    border: t.$carousel-accent-border solid t.$color-ink;
+    border-radius: t.$carousel-accent-radius;
+    background: t.$color-primary;
+  }
+
+  &__heading {
+    margin: 0;
+    color: t.$color-ink;
+    font-size: t.$carousel-heading-desktop;
+    font-weight: t.$weight-bold;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+
+  &__arrows {
+    flex: none;
+    gap: t.$size-2;
+  }
+
+  &__arrow {
+    display: grid;
+    place-items: center;
+    width: t.$carousel-arrow-desktop;
+    height: t.$carousel-arrow-desktop;
+    border: t.$border-width solid t.$color-ink;
+    border-radius: 50%;
+    background: t.$color-white;
+  }
+
+  &__arrow--next {
+    background: t.$color-primary;
+  }
+
+  &__arrow-icon {
+    display: block;
+    width: t.$size-3;
+    height: t.$size-3;
+    object-fit: contain;
+  }
+
+  &__track {
+    display: grid;
+    grid-template-columns:
+      f.fluid(
+        t.$carousel-peek-tablet,
+        t.$carousel-peek-desktop,
+        t.$carousel-layout-wide,
+        t.$breakpoint-desktop
+      )
+      t.$carousel-info-threshold
+      minmax(0, 1fr)
+      t.$carousel-info-threshold
+      f.fluid(
+        t.$carousel-peek-tablet,
+        t.$carousel-peek-desktop,
+        t.$carousel-layout-wide,
+        t.$breakpoint-desktop
+      );
+    gap: t.$size-1;
+    width: 100%;
+    height: t.$carousel-track-height-desktop;
+    padding-inline: t.$size-1;
+    overflow: hidden;
+  }
+
+  &__card {
+    position: relative;
+    box-sizing: border-box;
+    container: game-card / inline-size;
+    min-width: 0;
+    font-size: t.$carousel-game-title-size;
+    font-weight: t.$weight-bold;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__stats {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: t.$size-1;
+    min-width: 0;
+  }
+
+  &__metric {
+    display: inline-flex;
+    align-items: center;
+    gap: t.$carousel-metric-gap;
+    font-size: t.$carousel-metric-desktop;
+    font-weight: t.$weight-bold;
+    white-space: nowrap;
+  }
+
+  &__metric-icon {
+    display: block;
+    width: t.$carousel-metric-icon-size;
+    height: t.$carousel-metric-icon-size;
+    object-fit: contain;
+  }
+
+  // Container queries measure the content box; 283px content + two 2.5px borders = 288px card.
+  @container game-card (min-width: #{t.$carousel-info-content-threshold}) {
+    .slider__info {
+      display: flex;
+    }
+  }
+
+  @media (max-width: #{t.$carousel-layout-wide - 1px}) {
+    &__track {
+      grid-template-columns:
+        f.fluid(
+          t.$carousel-peek-mobile,
+          t.$carousel-peek-tablet,
+          t.$breakpoint-mobile,
+          t.$breakpoint-tablet
+        )
+        minmax(0, 1fr)
+        f.fluid(
+          t.$carousel-peek-mobile,
+          t.$carousel-peek-tablet,
+          t.$breakpoint-mobile,
+          t.$breakpoint-tablet
+        );
+      height: f.fluid(
+        t.$carousel-track-height-mobile,
+        t.$carousel-track-height-tablet,
+        t.$breakpoint-mobile,
+        t.$breakpoint-tablet
+      );
+    }
+
+    &__card {
+      height: f.fluid(
+        t.$carousel-card-height-mobile,
+        t.$carousel-card-height-tablet,
+        t.$breakpoint-mobile,
+        t.$breakpoint-tablet
+      );
+      border-radius: t.$carousel-card-radius-tablet;
+    }
+
+    &__card--first,
+    &__card--last {
+      display: none;
+    }
+
+    &__heading {
+      font-size: t.$carousel-heading-tablet;
+    }
+
+    &__accent {
+      height: t.$carousel-accent-height-tablet;
+    }
+
+    &__arrow {
+      width: t.$carousel-arrow-tablet;
+      height: t.$carousel-arrow-tablet;
+    }
+
+    &__arrow-icon {
+      width: t.$carousel-arrow-icon-tablet;
+      height: t.$carousel-arrow-icon-tablet;
+    }
+
+    &__metric {
+      font-size: t.$carousel-metric-tablet;
+    }
+  }
+
+  @media (max-width: t.$breakpoint-tablet) {
+    gap: f.fluid(t.$size-2, t.$size-3, t.$breakpoint-mobile, t.$breakpoint-tablet);
+    padding: f.fluid(t.$size-2, t.$size-3, t.$breakpoint-mobile, t.$breakpoint-tablet)
+      f.fluid(t.$size-2, t.$size-5, t.$breakpoint-mobile, t.$breakpoint-tablet);
+  }
+
+  @media (max-width: t.$breakpoint-mobile) {
+    &__arrows {
+      display: none;
+    }
+
+    &__track {
+      gap: t.$carousel-gap-mobile;
+      height: t.$carousel-track-height-mobile;
+      padding-inline: t.$carousel-track-padding-mobile;
+    }
+
+    &__card {
+      height: t.$carousel-card-height-mobile;
+    }
+  }
+}
