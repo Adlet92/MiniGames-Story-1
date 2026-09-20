@@ -1,0 +1,197 @@
+@use '../../shared/styles/tokens' as t;
+@use '../../shared/styles/mixins' as m;
+@use '../../shared/styles/functions' as f;
+
+.header {
+  position: relative;
+  width: 100%;
+  max-width: t.$breakpoint-desktop;
+  margin-inline: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: t.$size-3;
+  padding: t.$size-3 f.fluid(t.$size-5, t.$size-10, t.$breakpoint-tablet, t.$breakpoint-desktop);
+  border-bottom: t.$border-width solid t.$color-ink;
+  background: t.$color-bg;
+
+  &__brand {
+    display: flex;
+    align-items: center;
+    gap: t.$size-1;
+    color: t.$color-ink;
+    font-size: t.$font-brand-large;
+    font-weight: t.$weight-bold;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  &__brand img,
+  &__burger img {
+    display: block;
+    width: t.$icon-size;
+    height: t.$icon-size;
+  }
+
+  &__actions,
+  &__buttons,
+  &__nav {
+    display: flex;
+    align-items: center;
+  }
+
+  &__actions {
+    min-width: 0;
+    gap: f.fluid(t.$size-1, t.$size-4, t.$breakpoint-tablet, t.$breakpoint-desktop);
+  }
+
+  &__buttons {
+    gap: t.$size-2;
+  }
+
+  &__nav {
+    flex-wrap: wrap;
+    gap: f.fluid(t.$size-1, t.$size-5, t.$breakpoint-tablet, t.$breakpoint-desktop);
+  }
+
+  &__nav a {
+    color: t.$color-muted;
+    font-size: t.$font-nav;
+    font-weight: t.$weight-medium;
+    text-decoration: none;
+  }
+
+  &__nav a[aria-current='page'] {
+    color: t.$color-ink;
+    font-weight: t.$weight-bold;
+  }
+
+  &__button {
+    @include m.button;
+  }
+
+  &__button--signup {
+    background: t.$color-primary;
+  }
+
+  &__burger {
+    display: none;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  @include m.tablet {
+    padding: t.$size-2 f.fluid(t.$size-2, t.$size-5, t.$breakpoint-mobile, t.$breakpoint-tablet);
+    // Fluid interpolation between Figma's 16px at 375 and 40px at 768.
+
+    &__brand {
+      font-size: t.$font-brand-small;
+    }
+
+    &__actions {
+      gap: t.$size-2;
+    }
+
+    &__nav,
+    &__button--login {
+      display: none;
+    }
+
+    &__button {
+      padding: t.$button-small-y t.$button-small-x;
+    }
+
+    &__burger {
+      display: block;
+      flex-shrink: 0;
+    }
+  }
+
+  @include m.mobile {
+    &__buttons {
+      display: none;
+    }
+  }
+}
+
+.header {
+  &__nav a:hover {
+    color: t.$color-ink;
+    text-decoration: underline;
+  }
+
+  &__nav a:active,
+  &__brand:active {
+    color: t.$color-muted;
+  }
+
+  &__button:hover {
+    background: t.$color-primary-hover;
+  }
+
+  &__button:active {
+    background: t.$color-primary;
+  }
+
+  &__button:disabled,
+  &__burger:disabled {
+    opacity: t.$opacity-disabled;
+    cursor: not-allowed;
+  }
+
+  &__burger:hover {
+    background: t.$color-primary-hover;
+    border-radius: t.$radius-small;
+  }
+
+  &__burger:active {
+    background: t.$color-primary;
+  }
+}
+
+.header__burger {
+  position: relative;
+  width: t.$icon-size;
+  height: t.$icon-size;
+  color: t.$color-ink;
+  transition: background-color t.$menu-duration ease;
+
+  img {
+    transition:
+      opacity t.$menu-duration ease,
+      transform t.$menu-duration ease;
+  }
+
+  &--open img {
+    opacity: 0;
+    transform: rotate(t.$menu-close-angle);
+  }
+
+  &-cross {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    font-size: t.$font-brand-large;
+    opacity: 0;
+    transform: rotate(t.$menu-close-angle);
+    transition:
+      opacity t.$menu-duration ease,
+      transform t.$menu-duration ease;
+  }
+
+  &--open &-cross {
+    opacity: 1;
+    transform: rotate(0deg);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+    img,
+    &-cross {
+      transition: none;
+    }
+  }
+}

@@ -1,0 +1,181 @@
+@use '../../shared/styles/tokens' as t;
+@use '../../shared/styles/functions' as f;
+
+.hero {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: t.$breakpoint-desktop;
+  margin-inline: auto;
+  padding: f.fluid(
+      t.$hero-padding-y-tablet,
+      t.$hero-padding-y-desktop,
+      t.$breakpoint-tablet,
+      t.$breakpoint-desktop
+    )
+    f.fluid(t.$size-5, t.$hero-padding-x-desktop, t.$breakpoint-tablet, t.$breakpoint-desktop);
+  overflow: hidden;
+  background: t.$hero-overlay;
+
+  &__background {
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: t.$hero-image-opacity;
+    pointer-events: none;
+  }
+
+  &__card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: t.$size-3;
+    width: min(
+      100%,
+      f.fluid(
+        t.$hero-card-width-tablet,
+        t.$hero-card-width-desktop,
+        t.$breakpoint-tablet,
+        t.$breakpoint-desktop
+      )
+    );
+    min-width: 0;
+    padding: f.fluid(t.$size-3, t.$size-6, t.$breakpoint-tablet, t.$breakpoint-desktop);
+    border: t.$hero-border-desktop solid t.$color-ink;
+    border-radius: t.$hero-radius-desktop;
+    background: t.$color-bg;
+    box-shadow: t.$hero-shadow-desktop t.$hero-shadow-desktop 0 t.$color-ink;
+  }
+
+  &__title,
+  &__description {
+    width: 100%;
+    margin: 0;
+  }
+  &__title {
+    font-size: f.fluid(
+      t.$hero-title-tablet,
+      t.$hero-title-desktop,
+      t.$breakpoint-tablet,
+      t.$breakpoint-desktop
+    );
+    font-weight: t.$weight-bold;
+    line-height: t.$hero-line-title-desktop;
+  }
+
+  &__description {
+    color: t.$color-muted;
+    font-size: f.fluid(
+      t.$hero-body-tablet,
+      t.$hero-body-desktop,
+      t.$breakpoint-tablet,
+      t.$breakpoint-desktop
+    );
+    font-weight: t.$weight-medium;
+    line-height: t.$hero-line-body-desktop;
+  }
+
+  &__description--mobile {
+    display: none;
+  }
+
+  &__button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: t.$hero-button-height-desktop;
+    padding: t.$hero-button-y-desktop t.$size-3;
+    border: t.$border-width solid t.$color-ink;
+    border-radius: t.$radius-small;
+    background: t.$color-primary;
+    color: t.$color-ink;
+    font-size: t.$hero-body-desktop;
+    font-weight: t.$weight-bold;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+
+  &__button:hover {
+    background: t.$color-primary-hover;
+  }
+
+  &__button:active {
+    transform: translate(t.$hero-button-press, t.$hero-button-press);
+  }
+  @media (max-width: t.$breakpoint-tablet) {
+    padding: f.fluid(
+        t.$hero-padding-y-mobile,
+        t.$hero-padding-y-tablet,
+        t.$breakpoint-mobile,
+        t.$breakpoint-tablet
+      )
+      f.fluid(t.$size-2, t.$size-5, t.$breakpoint-mobile, t.$breakpoint-tablet);
+
+    &__card {
+      width: min(100%, t.$hero-card-width-tablet);
+      gap: t.$size-2;
+      padding: t.$size-3;
+      border-width: t.$hero-border-tablet;
+      border-radius: t.$hero-radius-tablet;
+      box-shadow: t.$hero-shadow-tablet t.$hero-shadow-tablet 0 t.$color-ink;
+    }
+
+    &__title {
+      font-size: f.fluid(
+        t.$hero-title-mobile,
+        t.$hero-title-tablet,
+        t.$breakpoint-mobile,
+        t.$breakpoint-tablet
+      );
+      line-height: t.$hero-line-title-tablet;
+    }
+
+    &__description {
+      font-size: f.fluid(
+        t.$hero-body-mobile,
+        t.$hero-body-tablet,
+        t.$breakpoint-mobile,
+        t.$breakpoint-tablet
+      );
+      line-height: t.$hero-line-body-tablet;
+    }
+
+    &__button {
+      min-height: t.$hero-button-height-tablet;
+      padding: t.$button-y t.$button-x;
+      font-size: t.$hero-body-tablet;
+    }
+  }
+
+  @media (max-width: t.$breakpoint-mobile) {
+    &__card {
+      border-width: t.$border-width;
+      border-radius: t.$hero-radius-mobile;
+      box-shadow: t.$hero-shadow-mobile t.$hero-shadow-mobile 0 t.$color-ink;
+    }
+
+    &__title {
+      line-height: t.$hero-line-title-mobile;
+    }
+
+    &__description--large {
+      display: none;
+    }
+
+    &__description--mobile {
+      display: block;
+    }
+
+    &__button {
+      min-height: t.$hero-button-height-mobile;
+      padding: t.$button-small-y t.$button-small-x;
+      font-size: t.$hero-body-mobile;
+    }
+  }
+}

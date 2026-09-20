@@ -1,0 +1,295 @@
+@use '../../shared/styles/tokens' as t;
+@use '../../shared/styles/functions' as f;
+
+.leaderboard {
+  display: flex;
+  flex-direction: column;
+  gap: f.fluid(t.$size-3, t.$size-5, t.$breakpoint-tablet, t.$breakpoint-desktop);
+  width: 100%;
+  max-width: t.$breakpoint-desktop;
+  margin-inline: auto;
+  padding: f.fluid(t.$size-3, t.$size-5, t.$breakpoint-tablet, t.$breakpoint-desktop)
+    f.fluid(t.$size-5, t.$carousel-padding-desktop, t.$breakpoint-tablet, t.$breakpoint-desktop);
+  background: t.$color-bg;
+
+  &__heading-group {
+    display: flex;
+    align-items: center;
+    gap: t.$size-1;
+    min-width: 0;
+  }
+
+  &__accent {
+    flex: none;
+    width: t.$carousel-accent-width;
+    height: t.$carousel-accent-height-desktop;
+    border: t.$carousel-accent-border solid t.$color-ink;
+    border-radius: t.$carousel-accent-radius;
+    background: t.$color-primary;
+  }
+
+  &__heading {
+    margin: 0;
+    color: t.$color-ink;
+    font-size: t.$carousel-heading-desktop;
+    font-weight: t.$weight-bold;
+    line-height: 1.2;
+  }
+
+  &__mobile-heading,
+  &__short-label,
+  &__compact-score,
+  &__streak-short {
+    display: none;
+  }
+
+  &__table {
+    width: 100%;
+    table-layout: fixed;
+    border: t.$leaderboard-border solid t.$color-ink;
+    border-spacing: 0;
+    border-radius: t.$leaderboard-radius;
+    overflow: hidden;
+    background: t.$color-white;
+    box-shadow: t.$leaderboard-shadow-desktop t.$leaderboard-shadow-desktop 0 t.$color-ink;
+    color: t.$color-ink;
+    font-family: t.$font-family-table;
+    font-size: t.$leaderboard-header-desktop;
+
+    th,
+    td {
+      min-width: 0;
+      padding: t.$size-2 t.$size-1;
+      overflow: hidden;
+      text-align: center;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    thead {
+      background: t.$color-tertiary;
+      color: t.$color-white;
+      font-weight: t.$weight-extra-bold;
+      text-transform: uppercase;
+
+      th {
+        padding-block: t.$size-3;
+        border-bottom: t.$leaderboard-divider solid t.$color-ink;
+      }
+    }
+
+    tbody {
+      tr:nth-child(odd) {
+        background: t.$color-bg;
+      }
+
+      tr:not(:last-child) > * {
+        border-bottom: t.$leaderboard-divider solid t.$color-outline;
+      }
+
+      th,
+      td {
+        padding-block: t.$size-2;
+      }
+    }
+  }
+
+  &__rank {
+    width: t.$leaderboard-rank-desktop;
+    font-weight: t.$weight-extra-bold;
+  }
+
+  tbody tr:first-child &__rank {
+    color: t.$color-primary;
+  }
+
+  &__player-content {
+    display: flex;
+    align-items: center;
+    gap: f.fluid(
+      t.$size-1,
+      t.$leaderboard-player-gap-desktop,
+      t.$breakpoint-tablet,
+      t.$breakpoint-desktop
+    );
+    width: fit-content;
+    max-width: 100%;
+    margin-inline: auto;
+  }
+
+  &__avatar {
+    display: inline-grid;
+    flex: none;
+    place-items: center;
+    width: t.$leaderboard-avatar-desktop;
+    height: t.$leaderboard-avatar-desktop;
+    border: t.$leaderboard-avatar-border solid t.$color-ink;
+    border-radius: 50%;
+    background: t.$color-primary;
+    font-size: t.$leaderboard-avatar-label-desktop;
+    font-weight: t.$weight-bold;
+  }
+
+  &__avatar--2 {
+    background: t.$color-avatar-mint;
+  }
+
+  &__avatar--3 {
+    background: t.$color-avatar-blue;
+  }
+
+  &__avatar--4 {
+    background: t.$color-avatar-pink;
+  }
+
+  &__avatar--5 {
+    background: t.$color-avatar-lilac;
+  }
+
+  &__player-name {
+    min-width: 0;
+    overflow: hidden;
+    font-weight: t.$weight-bold;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__games {
+    font-weight: t.$weight-semibold;
+  }
+
+  &__score,
+  &__streak {
+    font-weight: t.$weight-bold;
+  }
+
+  &__game-badge {
+    display: inline-block;
+    max-width: 100%;
+    padding: t.$leaderboard-mobile-gap t.$leaderboard-badge-padding-x;
+    overflow: hidden;
+    border: t.$leaderboard-avatar-border solid t.$color-ink;
+    border-radius: t.$size-3;
+    background: t.$color-bg;
+    font-size: t.$leaderboard-badge-size;
+    font-weight: t.$weight-bold;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  @media (max-width: t.$breakpoint-tablet) {
+    gap: f.fluid(t.$size-2, t.$size-3, t.$breakpoint-mobile, t.$breakpoint-tablet);
+    padding: f.fluid(t.$size-2, t.$size-3, t.$breakpoint-mobile, t.$breakpoint-tablet)
+      f.fluid(t.$size-2, t.$size-5, t.$breakpoint-mobile, t.$breakpoint-tablet);
+
+    &__accent {
+      height: t.$carousel-accent-height-tablet;
+    }
+
+    &__heading {
+      font-size: t.$carousel-heading-tablet;
+    }
+
+    &__table {
+      box-shadow: t.$leaderboard-shadow-small t.$leaderboard-shadow-small 0 t.$color-ink;
+      font-size: t.$leaderboard-header-small;
+
+      thead th,
+      tbody th,
+      tbody td {
+        padding-block: t.$size-2;
+      }
+
+      tr:nth-child(n + 4) {
+        display: none;
+      }
+    }
+
+    &__long-label,
+    &__favorite,
+    &__streak-days {
+      display: none;
+    }
+
+    &__short-label,
+    &__streak-short {
+      display: inline;
+    }
+
+    &__games,
+    &__score,
+    &__streak {
+      width: t.$leaderboard-games-tablet;
+    }
+
+    &__avatar {
+      width: t.$leaderboard-avatar-tablet;
+      height: t.$leaderboard-avatar-tablet;
+      font-size: t.$leaderboard-avatar-label-small;
+    }
+
+    &__player-content {
+      gap: t.$size-1;
+    }
+
+    tbody tr:first-child &__rank {
+      color: t.$color-tertiary;
+    }
+  }
+
+  @media (max-width: t.$leaderboard-breakpoint-compact) {
+    &__full-heading {
+      display: none;
+    }
+
+    &__mobile-heading {
+      display: inline;
+      font-size: t.$carousel-heading-tablet;
+      font-weight: t.$weight-bold;
+    }
+
+    &__table {
+      th,
+      td {
+        padding-inline: t.$leaderboard-cell-x-mobile;
+      }
+
+      thead {
+        font-size: t.$leaderboard-header-mobile;
+      }
+    }
+
+    &__rank {
+      width: t.$leaderboard-rank-mobile;
+    }
+
+    &__games {
+      display: none;
+    }
+
+    &__score {
+      width: t.$leaderboard-score-mobile;
+    }
+
+    &__streak {
+      width: t.$leaderboard-streak-mobile;
+    }
+
+    &__avatar {
+      width: t.$leaderboard-avatar-mobile;
+      height: t.$leaderboard-avatar-mobile;
+    }
+
+    &__player-content {
+      gap: t.$leaderboard-mobile-gap;
+    }
+
+    &__full-score {
+      display: none;
+    }
+
+    &__compact-score {
+      display: inline;
+    }
+  }
+}

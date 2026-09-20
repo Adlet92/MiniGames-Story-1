@@ -1,0 +1,31 @@
+@use 'tokens' as t;
+
+// Minimal base styles; no reset stylesheet.
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: t.$color-bg;
+  color: t.$color-ink;
+  font-family: t.$font-family;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+:focus-visible {
+  outline: t.$border-width solid t.$color-ink;
+  outline-offset: t.$size-1;
+}
+
+:root {
+  --breakpoint-tablet: #{t.$breakpoint-tablet};
+}
