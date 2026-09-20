@@ -30,7 +30,11 @@ export function createHomePage(): HTMLElement {
     heartIcon,
   };
 
-  homePage.append(createHeroSection(heroImageUrl), createSliderSection(sliderAssets), createLeaderboardSection());
+  homePage.append(
+    createHeroSection(heroImageUrl),
+    createSliderSection(sliderAssets),
+    createLeaderboardSection(),
+  );
 
   return homePage;
 }
