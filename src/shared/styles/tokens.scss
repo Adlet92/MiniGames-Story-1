@@ -72,3 +72,46 @@ $hero-button-height-desktop: 54px;
 $hero-button-height-tablet: 38px;
 $hero-button-height-mobile: 32px;
 $hero-button-press: 2px;
+
+// carousel tokens
+$color-white: #fff;
+$carousel-padding-desktop: 120px;
+$carousel-layout-wide: 1280px;
+$carousel-accent-width: 8px;
+$carousel-accent-height-desktop: 32px;
+$carousel-accent-height-tablet: 24px;
+$carousel-accent-border: 1.5px;
+$carousel-accent-radius: 4px;
+$carousel-heading-desktop: 32px;
+$carousel-heading-tablet: 24px;
+$carousel-arrow-desktop: 48px;
+$carousel-arrow-tablet: 40px;
+$carousel-arrow-icon-tablet: 18px;
+$carousel-peek-desktop: 120px;
+$carousel-peek-tablet: 104px;
+$carousel-peek-mobile: 56px;
+$carousel-track-height-desktop: 388px;
+$carousel-track-height-tablet: 288px;
+$carousel-track-height-mobile: 206px;
+$carousel-card-height-desktop: 384px;
+$carousel-card-height-tablet: 280px;
+$carousel-card-height-mobile: 200px;
+$carousel-card-border: 2.5px;
+$carousel-card-radius-desktop: 24px;
+$carousel-card-radius-tablet: 16px;
+$carousel-card-shadow: 4px;
+$carousel-info-threshold: 288px;
+$carousel-info-content-threshold: 283px;
+$carousel-info-gradient: linear-gradient(
+  to bottom,
+  rgb(0 0 0 / 0%),
+  rgb(0 0 0 / 40%) 35%,
+  rgb(0 0 0 / 85%)
+);
+$carousel-game-title-size: 18px;
+$carousel-metric-desktop: 16px;
+$carousel-metric-tablet: 14px;
+$carousel-metric-icon-size: 20px;
+$carousel-metric-gap: 4px;
+$carousel-gap-mobile: 2px;
+$carousel-track-padding-mobile: 4px;

@@ -1,11 +1,35 @@
 import heroImageUrl from '../../assets/camper-van-make-it-home-card.jpg';
+import islandersImage from '../../assets/islanders-new-shores-card.jpg';
+import bubbleImage from '../../assets/shelve-the-potions-card.jpg';
+import candyImage from '../../assets/tailside-cozy-cafe-sim-card.jpg';
+import cafeImage from '../../assets/vacation-cafe-simulator-card.jpg';
+import winterImage from '../../assets/winter-burrow-card.jpg';
+
+import previousIcon from '../../assets/icons/arrow_back.svg';
+import nextIcon from '../../assets/icons/arrow_forward.svg';
+import heartIcon from '../../assets/icons/heart_icon.svg';
+import starIcon from '../../assets/icons/star_icon.svg';
+import type { SliderAssets } from '../../features/slider/slider';
+import { createSliderSection } from '../../features/slider/slider';
 import { createHeroSection } from '../hero/hero-section';
 // import './home-page.scss';
 
 export function createHomePage(): HTMLElement {
-  const main: HTMLElement = document.createElement('main');
+  const homePage: HTMLElement = document.createElement('main');
 
-  main.append(createHeroSection(heroImageUrl));
+  const sliderAssets: SliderAssets = {
+    candyImage,
+    islandersImage,
+    cafeImage,
+    winterImage,
+    bubbleImage,
+    previousIcon,
+    nextIcon,
+    starIcon,
+    heartIcon,
+  };
 
-  return main;
+  homePage.append(createHeroSection(heroImageUrl), createSliderSection(sliderAssets));
+
+  return homePage;
 }
