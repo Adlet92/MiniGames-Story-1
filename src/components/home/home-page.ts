@@ -1,4 +1,4 @@
-import heroImageUrl from '../../assets/camper-van-make-it-home-card.jpg';
+import heroImageUrl from '../../assets/hero-image.png';
 import islandersImage from '../../assets/islanders-new-shores-card.jpg';
 import bubbleImage from '../../assets/shelve-the-potions-card.jpg';
 import candyImage from '../../assets/tailside-cozy-cafe-sim-card.jpg';
@@ -12,6 +12,7 @@ import starIcon from '../../assets/icons/star_icon.svg';
 import type { SliderAssets } from '../../features/slider/slider';
 import { createSliderSection } from '../../features/slider/slider';
 import { createHeroSection } from '../hero/hero-section';
+import { createLeaderboardSection } from '../leaderboard/leaderboard';
 // import './home-page.scss';
 
 export function createHomePage(): HTMLElement {
@@ -29,7 +30,7 @@ export function createHomePage(): HTMLElement {
     heartIcon,
   };
 
-  homePage.append(createHeroSection(heroImageUrl), createSliderSection(sliderAssets));
+  homePage.append(createHeroSection(heroImageUrl), createSliderSection(sliderAssets), createLeaderboardSection());
 
   return homePage;
 }
