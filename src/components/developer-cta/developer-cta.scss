@@ -1,0 +1,178 @@
+@use '../../shared/styles/tokens' as t;
+@use '../../shared/styles/functions' as f;
+
+.developer-cta {
+  display: grid;
+  grid-template-columns: minmax(0, t.$developer-image-column) minmax(0, t.$developer-card-column);
+  align-items: center;
+  gap: t.$size-5;
+  width: 100%;
+  max-width: t.$breakpoint-desktop;
+  margin-inline: auto;
+  padding: f.fluid(t.$size-3, t.$size-5, t.$breakpoint-tablet, t.$breakpoint-desktop)
+    f.fluid(t.$size-5, t.$carousel-padding-desktop, t.$breakpoint-tablet, t.$breakpoint-desktop);
+  background: t.$color-bg;
+
+  &__illustration {
+    display: block;
+    width: 100%;
+    aspect-ratio: t.$developer-image-aspect;
+    object-fit: cover;
+    object-position: center;
+    border-radius: t.$developer-radius;
+    background: t.$developer-illustration-bg;
+  }
+
+  &__card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: t.$size-3;
+    min-width: 0;
+    padding: t.$size-5;
+    border: t.$border-width solid t.$color-ink;
+    border-radius: t.$developer-radius;
+    background: t.$color-white;
+    box-shadow: t.$developer-card-shadow;
+  }
+
+  &__heading {
+    width: 100%;
+    margin: 0;
+    color: t.$color-ink;
+    font-size: t.$developer-heading-desktop;
+    font-weight: t.$weight-bold;
+    line-height: 1.2;
+  }
+
+  &__description {
+    max-width: t.$developer-copy-max;
+    margin: 0;
+    color: t.$color-muted;
+    font-size: t.$developer-copy-desktop;
+    line-height: 1.5;
+  }
+
+  &__button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: t.$size-1;
+    min-height: t.$hero-button-height-desktop;
+    padding: t.$size-2 t.$size-3;
+    border: t.$border-width solid t.$color-ink;
+    border-radius: t.$developer-button-radius;
+    background: t.$color-primary;
+    box-shadow: t.$developer-button-shadow;
+    color: t.$color-ink;
+    cursor: pointer;
+    font-family: t.$font-family-table;
+    font-size: t.$developer-copy-desktop;
+    font-weight: t.$weight-bold;
+    white-space: nowrap;
+
+    &:hover {
+      background: t.$color-primary-hover;
+    }
+
+    &:active {
+      transform: translateY(t.$hero-button-press);
+    }
+  }
+
+  &__upload-icon {
+    display: block;
+    flex: none;
+    width: t.$developer-button-icon-desktop;
+    height: t.$developer-button-icon-desktop;
+    object-fit: contain;
+  }
+
+  &__contact {
+    margin: 0;
+    color: t.$color-muted-low;
+    font-size: t.$developer-contact-desktop;
+    line-height: 1.4;
+  }
+
+  @media (max-width: t.$developer-stack-breakpoint) {
+    grid-template-columns: minmax(0, 1fr);
+    gap: f.fluid(t.$size-2, t.$size-3, t.$breakpoint-mobile, t.$breakpoint-tablet);
+    padding: f.fluid(t.$size-2, t.$size-3, t.$breakpoint-mobile, t.$breakpoint-tablet)
+      f.fluid(t.$size-2, t.$size-5, t.$breakpoint-mobile, t.$breakpoint-tablet);
+
+    &__illustration {
+      height: f.fluid(
+        t.$developer-image-height-mobile,
+        t.$developer-image-height-tablet,
+        t.$breakpoint-mobile,
+        t.$breakpoint-tablet
+      );
+      aspect-ratio: auto;
+    }
+
+    &__card {
+      gap: t.$size-2;
+      width: 100%;
+      padding: f.fluid(t.$size-3, t.$size-4, t.$breakpoint-mobile, t.$breakpoint-tablet);
+    }
+
+    &__heading {
+      font-size: t.$developer-heading-small;
+    }
+
+    &__description {
+      font-size: f.fluid(
+        t.$developer-copy-mobile,
+        t.$developer-copy-tablet,
+        t.$breakpoint-mobile,
+        t.$breakpoint-tablet
+      );
+    }
+
+    &__button {
+      min-height: 0;
+      padding: f.fluid(t.$size-1, t.$button-y, t.$breakpoint-mobile, t.$breakpoint-tablet)
+        f.fluid(t.$size-2, t.$button-x, t.$breakpoint-mobile, t.$breakpoint-tablet);
+      font-family: t.$font-family;
+      font-size: f.fluid(
+        t.$developer-copy-mobile,
+        t.$developer-copy-tablet,
+        t.$breakpoint-mobile,
+        t.$breakpoint-tablet
+      );
+    }
+
+    &__upload-icon {
+      width: t.$developer-button-icon-small;
+      height: t.$developer-button-icon-small;
+    }
+
+    &__contact {
+      font-size: t.$developer-contact-small;
+    }
+  }
+
+  @media (max-width: t.$breakpoint-mobile) {
+    gap: t.$size-2;
+    padding: t.$size-2;
+
+    &__illustration {
+      height: t.$developer-image-height-mobile;
+    }
+
+    &__card {
+      padding: t.$size-3;
+    }
+
+    &__description {
+      font-size: t.$developer-copy-mobile;
+    }
+
+    &__button {
+      padding: t.$size-1 t.$size-2;
+      font-family: t.$font-family-table;
+      font-size: t.$developer-copy-mobile;
+    }
+  }
+}
