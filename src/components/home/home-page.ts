@@ -9,8 +9,11 @@ import previousIcon from '../../assets/icons/arrow_back.svg';
 import nextIcon from '../../assets/icons/arrow_forward.svg';
 import heartIcon from '../../assets/icons/heart_icon.svg';
 import starIcon from '../../assets/icons/star_icon.svg';
+import uploadIcon from '../../assets/icons/upload.svg';
+import illustration from '../../assets/illustration-side.jpg';
 import type { SliderAssets } from '../../features/slider/slider';
 import { createSliderSection } from '../../features/slider/slider';
+import { createDeveloperCtaSection } from '../developer-cta/developer-cta';
 import { createHeroSection } from '../hero/hero-section';
 import { createLeaderboardSection } from '../leaderboard/leaderboard';
 // import './home-page.scss';
@@ -34,6 +37,10 @@ export function createHomePage(): HTMLElement {
     createHeroSection(heroImageUrl),
     createSliderSection(sliderAssets),
     createLeaderboardSection(),
+    createDeveloperCtaSection({
+      illustrationUrl: illustration,
+      uploadIconUrl: uploadIcon,
+    }),
   );
 
   return homePage;

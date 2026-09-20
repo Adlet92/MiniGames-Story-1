@@ -1,3 +1,5 @@
+@use 'sass:math';
+
 $color-bg: #f9f8f3;
 $color-ink: #242145;
 $color-muted: #5f5d75;
@@ -152,3 +154,29 @@ $leaderboard-badge-padding-x: 12px;
 $font-family-table: 'Roboto', sans-serif;
 $weight-semibold: 600;
 $weight-extra-bold: 800;
+
+// game developer call-to-action tokens
+$color-muted-low: #737380;
+$developer-illustration-bg: #c7cdf6;
+$developer-image-column: 17fr;
+$developer-card-column: 24fr;
+$developer-image-aspect: math.div(17, 12);
+$developer-image-height-tablet: 300px;
+$developer-image-height-mobile: 227px;
+$developer-radius: 24px;
+$developer-heading-desktop: 32px;
+$developer-heading-small: 24px;
+$developer-copy-desktop: 18px;
+$developer-copy-tablet: 14px;
+$developer-copy-mobile: 12px;
+$developer-copy-max: 64ch;
+$developer-contact-desktop: 14px;
+$developer-contact-small: 12px;
+$developer-button-radius: 12px;
+$developer-button-icon-desktop: 24px;
+$developer-button-icon-small: 16px;
+$developer-card-shadow:
+  0 2px 4px rgb(0 0 0 / 4%),
+  0 14px 15px rgb(0 0 0 / 8%);
+$developer-button-shadow: 0 10px 10px rgb(0 0 0 / 10%);
+$developer-stack-breakpoint: 1080px;
