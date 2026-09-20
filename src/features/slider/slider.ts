@@ -34,11 +34,19 @@ function createMetric(iconUrl: string, value: string, label: string): HTMLSpanEl
   metric.className = 'slider__metric';
   metric.setAttribute('aria-label', `${label}: ${value}`);
 
-  const icon: HTMLImageElement = createIcon(iconUrl, 'slider__metric-icon');
-  icon.setAttribute('aria-hidden', 'true');
+  // The supplied SVG contains its own sample number after the first 24px icon.
+  // Clip that number so each card can show its actual rating and likes below.
+  const iconFrame: HTMLSpanElement = document.createElement('span');
+  iconFrame.className = 'slider__metric-icon';
+  iconFrame.setAttribute('aria-hidden', 'true');
+  const icon: HTMLImageElement = document.createElement('img');
+  icon.src = iconUrl;
+  icon.alt = '';
+  icon.className = 'slider__metric-art';
+  iconFrame.append(icon);
   const text: HTMLSpanElement = document.createElement('span');
   text.textContent = value;
-  metric.append(icon, text);
+  metric.append(iconFrame, text);
   return metric;
 }
 
