@@ -180,3 +180,23 @@ $developer-card-shadow:
   0 14px 15px rgb(0 0 0 / 8%);
 $developer-button-shadow: 0 10px 10px rgb(0 0 0 / 10%);
 $developer-stack-breakpoint: 1080px;
+
+// footer tokens
+$footer-content-width: 1920px;
+$footer-description-width: 400px;
+$footer-desktop-gap: 64px;
+$footer-column-gap: 80px;
+$footer-tablet-column-gap: 40px;
+$footer-mobile-padding-y: 32px;
+$footer-divider: rgb(185 181 201 / 16%);
+$footer-social-desktop: 40px;
+$footer-social-small: 32px;
+$footer-credit-icon-desktop: 24px;
+$footer-credit-icon-small: 20px;
+$footer-icon-bg: #2a264f;
+$footer-link-size: 14px;
+$footer-credit-size-mobile: 12px;
+$footer-rs-label-size-desktop: 10px;
+$footer-rs-label-size-small: 8px;
+$footer-transition: 160ms;
+$footer-stack-breakpoint: 1080px;
