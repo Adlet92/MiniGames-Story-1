@@ -21,10 +21,7 @@ const HOME_URL: string = '#/';
 const RS_SCHOOL_URL: string = 'https://rs.school/courses/short-track';
 const STUDENT_GITHUB_URL: string = 'https://github.com/Adlet92';
 
-function createLink(
-  data: FooterLinkData,
-  className: string,
-): HTMLAnchorElement {
+function createLink(data: FooterLinkData, className: string): HTMLAnchorElement {
   const link: HTMLAnchorElement = document.createElement('a');
   link.className = className;
   link.href = data.href;
