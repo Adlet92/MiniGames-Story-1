@@ -1,0 +1,7 @@
+@use '../../shared/styles/tokens' as t;
+
+.library-page {
+  min-height: t.$library-min-height;
+  overflow: hidden;
+  background: t.$color-bg;
+}

@@ -1,3 +1,4 @@
+import type { AppPage } from '../../app/router';
 import brandUrl from '../../assets/icons/brand.png';
 import burgerUrl from '../../assets/icons/burger.svg';
 import './header.scss';
@@ -7,7 +8,34 @@ import { createMobileMenu } from './mobile-menu';
 export type AuthMode = 'login' | 'signup';
 
 export interface HeaderOptions {
+  activePage: AppPage;
   onAuth: (mode: AuthMode) => void;
+  onNavigate: (page: AppPage) => void;
+}
+
+interface NavigationItem {
+  activePage?: AppPage;
+  label: string;
+  targetPage: AppPage;
+}
+
+const NAVIGATION_ITEMS: NavigationItem[] = [
+  { activePage: 'home', label: 'Home', targetPage: 'home' },
+  { activePage: 'library', label: 'Library', targetPage: 'library' },
+  { label: 'Tournaments', targetPage: 'home' },
+  { label: 'Community', targetPage: 'home' },
+];
+
+function getPageHref(page: AppPage): string {
+  return page === 'home' ? '#/' : '#/library';
+}
+
+export function setHeaderActivePage(header: HTMLElement, page: AppPage): void {
+  const links: NodeListOf<HTMLAnchorElement> =
+    header.querySelectorAll<HTMLAnchorElement>('[data-active-page]');
+  for (const link of links) {
+    link.setAttribute('aria-current', link.dataset.activePage === page ? 'page' : 'false');
+  }
 }
 
 function createAuthButton(
@@ -31,6 +59,10 @@ export function createHeader(options: HeaderOptions): HTMLElement {
   brand.className = 'header__brand';
   brand.href = '#/';
   brand.setAttribute('aria-label', 'MiniGames home');
+  brand.addEventListener('click', (event: MouseEvent): void => {
+    event.preventDefault();
+    options.onNavigate('home');
+  });
   const logo: HTMLImageElement = document.createElement('img');
   logo.src = brandUrl;
   logo.alt = '';
@@ -46,16 +78,25 @@ export function createHeader(options: HeaderOptions): HTMLElement {
   navigation.className = 'header__nav';
   navigation.id = 'header-navigation';
   navigation.setAttribute('aria-label', 'Main navigation');
-  const labels: string[] = ['Home', 'Library', 'Tournaments', 'Community'];
-  const links: HTMLAnchorElement[] = labels.map((label: string): HTMLAnchorElement => {
-    const link: HTMLAnchorElement = document.createElement('a');
-    link.href = '#/';
-    link.textContent = label;
-    if (label === 'Home') {
-      link.setAttribute('aria-current', 'page');
-    }
-    return link;
-  });
+  const links: HTMLAnchorElement[] = NAVIGATION_ITEMS.map(
+    (item: NavigationItem): HTMLAnchorElement => {
+      const link: HTMLAnchorElement = document.createElement('a');
+      link.href = getPageHref(item.targetPage);
+      link.textContent = item.label;
+      link.dataset.targetPage = item.targetPage;
+      if (item.activePage !== undefined) {
+        link.dataset.activePage = item.activePage;
+      }
+      if (item.activePage === options.activePage) {
+        link.setAttribute('aria-current', 'page');
+      }
+      link.addEventListener('click', (event: MouseEvent): void => {
+        event.preventDefault();
+        options.onNavigate(item.targetPage);
+      });
+      return link;
+    },
+  );
   navigation.append(...links);
 
   const buttons: HTMLDivElement = document.createElement('div');

@@ -1,3 +1,4 @@
+import type { AppPage } from '../../app/router';
 import brandUrl from '../../assets/icons/brand.png';
 import type { AuthMode, HeaderOptions } from './header';
 import './mobile-menu.scss';
@@ -5,6 +6,23 @@ import './mobile-menu.scss';
 export interface MobileMenu {
   element: HTMLDialogElement;
   open: () => void;
+}
+
+interface MobileNavigationItem {
+  activePage?: AppPage;
+  label: string;
+  targetPage: AppPage;
+}
+
+const MOBILE_NAVIGATION_ITEMS: MobileNavigationItem[] = [
+  { activePage: 'home', label: 'Home', targetPage: 'home' },
+  { activePage: 'library', label: 'Library', targetPage: 'library' },
+  { label: 'Tournaments', targetPage: 'home' },
+  { label: 'Community', targetPage: 'home' },
+];
+
+function getPageHref(page: AppPage): string {
+  return page === 'home' ? '#/' : '#/library';
 }
 
 export function createMobileMenu(trigger: HTMLButtonElement, options: HeaderOptions): MobileMenu {
@@ -39,16 +57,21 @@ export function createMobileMenu(trigger: HTMLButtonElement, options: HeaderOpti
   const nav: HTMLElement = document.createElement('nav');
   nav.className = 'mobile-menu__nav';
   nav.setAttribute('aria-label', 'Main navigation');
-  const labels: string[] = ['Home', 'Library', 'Tournaments', 'Community'];
-  const links: HTMLAnchorElement[] = labels.map((label: string): HTMLAnchorElement => {
-    const link: HTMLAnchorElement = document.createElement('a');
-    link.textContent = label;
-    link.href = '#/';
-    if (label === 'Home') {
-      link.setAttribute('aria-current', 'page');
-    }
-    return link;
-  });
+  const links: HTMLAnchorElement[] = MOBILE_NAVIGATION_ITEMS.map(
+    (item: MobileNavigationItem): HTMLAnchorElement => {
+      const link: HTMLAnchorElement = document.createElement('a');
+      link.textContent = item.label;
+      link.href = getPageHref(item.targetPage);
+      link.dataset.targetPage = item.targetPage;
+      if (item.activePage !== undefined) {
+        link.dataset.activePage = item.activePage;
+      }
+      if (item.activePage === options.activePage) {
+        link.setAttribute('aria-current', 'page');
+      }
+      return link;
+    },
+  );
   nav.append(...links);
   const buttons: HTMLDivElement = document.createElement('div');
   buttons.className = 'mobile-menu__buttons';
@@ -57,6 +80,7 @@ export function createMobileMenu(trigger: HTMLButtonElement, options: HeaderOpti
   let isClosing: boolean = false;
   let previousOverflow: string = '';
   let pendingAuth: AuthMode | undefined;
+  let pendingPage: AppPage | undefined;
   let closeTimer: number | undefined;
   let openFrame: number | undefined;
 
@@ -74,12 +98,15 @@ export function createMobileMenu(trigger: HTMLButtonElement, options: HeaderOpti
     if (tablet.matches) {
       trigger.focus();
     }
-    if (pendingAuth === undefined) {
-      return;
+    if (pendingAuth !== undefined) {
+      const mode: AuthMode = pendingAuth;
+      pendingAuth = undefined;
+      options.onAuth(mode);
+    } else if (pendingPage !== undefined) {
+      const page: AppPage = pendingPage;
+      pendingPage = undefined;
+      options.onNavigate(page);
     }
-    const mode: AuthMode = pendingAuth;
-    pendingAuth = undefined;
-    options.onAuth(mode);
   }
 
   function closeMenu(): void {
@@ -113,8 +140,19 @@ export function createMobileMenu(trigger: HTMLButtonElement, options: HeaderOpti
 
   buttons.append(createAuthButton('Log In', 'login'), createAuthButton('Sign Up', 'signup'));
   close.addEventListener('click', closeMenu);
-  brand.addEventListener('click', closeMenu);
-  nav.addEventListener('click', closeMenu);
+  brand.addEventListener('click', (event: MouseEvent): void => {
+    event.preventDefault();
+    pendingPage = 'home';
+    closeMenu();
+  });
+  for (const link of links) {
+    link.addEventListener('click', (event: MouseEvent): void => {
+      event.preventDefault();
+      const targetPage: string | undefined = link.dataset.targetPage;
+      pendingPage = targetPage === 'library' ? 'library' : 'home';
+      closeMenu();
+    });
+  }
   element.addEventListener('cancel', (event: Event): void => {
     event.preventDefault();
     closeMenu();

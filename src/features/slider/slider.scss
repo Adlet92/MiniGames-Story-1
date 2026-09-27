@@ -10,6 +10,7 @@
   margin-inline: auto;
   padding: f.fluid(t.$size-3, t.$size-5, t.$breakpoint-tablet, t.$breakpoint-desktop)
     f.fluid(t.$size-5, t.$carousel-padding-desktop, t.$breakpoint-tablet, t.$breakpoint-desktop);
+  overflow: hidden;
   background: t.$color-bg;
 
   &__header,
@@ -57,9 +58,27 @@
     place-items: center;
     width: t.$carousel-arrow-desktop;
     height: t.$carousel-arrow-desktop;
+    padding: 0;
     border: t.$border-width solid t.$color-ink;
     border-radius: 50%;
     background: t.$color-white;
+    cursor: pointer;
+    transition:
+      transform t.$carousel-transition,
+      background-color t.$carousel-transition;
+
+    &:hover {
+      background: t.$color-primary-hover;
+    }
+
+    &:active {
+      transform: translateY(t.$carousel-arrow-press);
+    }
+
+    &:focus-visible {
+      outline: t.$border-width solid t.$color-tertiary;
+      outline-offset: t.$size-05;
+    }
   }
 
   &__arrow--next {
@@ -71,44 +90,62 @@
     width: t.$size-3;
     height: t.$size-3;
     object-fit: contain;
+    pointer-events: none;
   }
 
   &__track {
-    display: grid;
-    grid-template-columns:
-      f.fluid(
-        t.$carousel-peek-tablet,
-        t.$carousel-peek-desktop,
-        t.$carousel-layout-wide,
-        t.$breakpoint-desktop
-      )
-      t.$carousel-info-threshold
-      minmax(0, 1fr)
-      t.$carousel-info-threshold
-      f.fluid(
-        t.$carousel-peek-tablet,
-        t.$carousel-peek-desktop,
-        t.$carousel-layout-wide,
-        t.$breakpoint-desktop
-      );
-    gap: t.$size-1;
+    --drag-offset: 0px;
+
+    position: relative;
     width: 100%;
     height: t.$carousel-track-height-desktop;
-    padding-inline: t.$size-1;
     overflow: hidden;
+    cursor: grab;
+    touch-action: pan-y;
+    user-select: none;
+  }
+
+  &__track--dragging {
+    cursor: grabbing;
   }
 
   &__card {
-    position: relative;
+    position: absolute;
+    z-index: var(--card-layer);
+    top: 0;
+    left: 0;
     box-sizing: border-box;
     container: game-card / inline-size;
-    min-width: 0;
-    height: t.$carousel-card-height-desktop;
+    width: var(--card-width);
+    height: var(--card-height);
+    padding: 0;
     border: t.$carousel-card-border solid t.$color-ink;
     border-radius: t.$carousel-card-radius-desktop;
     overflow: hidden;
+    opacity: var(--card-opacity);
     background: t.$color-white;
     box-shadow: t.$carousel-card-shadow t.$carousel-card-shadow 0 t.$color-ink;
+    cursor: pointer;
+    transform: translate3d(calc(var(--card-x) + var(--drag-offset)), var(--card-y), 0);
+    transition:
+      transform t.$carousel-slide-duration t.$carousel-slide-easing,
+      width t.$carousel-slide-duration t.$carousel-slide-easing,
+      height t.$carousel-slide-duration t.$carousel-slide-easing,
+      opacity t.$carousel-transition;
+    will-change: transform, width, height;
+
+    &[aria-hidden='true'] {
+      pointer-events: none;
+    }
+
+    &:focus-visible {
+      outline: t.$border-width solid t.$color-tertiary;
+      outline-offset: -#{t.$size-05};
+    }
+  }
+
+  &__track--dragging &__card {
+    transition: none;
   }
 
   &__image {
@@ -116,6 +153,7 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+    pointer-events: none;
   }
 
   &__info {
@@ -128,6 +166,7 @@
     padding: t.$size-2;
     background: t.$carousel-info-gradient;
     color: t.$color-white;
+    pointer-events: none;
   }
 
   &__game-title {
@@ -137,6 +176,7 @@
     overflow: hidden;
     font-size: t.$carousel-game-title-size;
     font-weight: t.$weight-bold;
+    text-align: left;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -173,7 +213,18 @@
     height: 100%;
   }
 
-  // Container queries measure the content box; 283px content + two 2.5px borders = 288px card.
+  &__status {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
   @container game-card (min-width: #{t.$carousel-info-content-threshold}) {
     .slider__info {
       display: flex;
@@ -182,20 +233,6 @@
 
   @media (max-width: #{t.$carousel-layout-wide - 1px}) {
     &__track {
-      grid-template-columns:
-        f.fluid(
-          t.$carousel-peek-mobile,
-          t.$carousel-peek-tablet,
-          t.$breakpoint-mobile,
-          t.$breakpoint-tablet
-        )
-        minmax(0, 1fr)
-        f.fluid(
-          t.$carousel-peek-mobile,
-          t.$carousel-peek-tablet,
-          t.$breakpoint-mobile,
-          t.$breakpoint-tablet
-        );
       height: f.fluid(
         t.$carousel-track-height-mobile,
         t.$carousel-track-height-tablet,
@@ -205,18 +242,7 @@
     }
 
     &__card {
-      height: f.fluid(
-        t.$carousel-card-height-mobile,
-        t.$carousel-card-height-tablet,
-        t.$breakpoint-mobile,
-        t.$breakpoint-tablet
-      );
       border-radius: t.$carousel-card-radius-tablet;
-    }
-
-    &__card--first,
-    &__card--last {
-      display: none;
     }
 
     &__heading {
@@ -254,13 +280,14 @@
     }
 
     &__track {
-      gap: t.$carousel-gap-mobile;
       height: t.$carousel-track-height-mobile;
-      padding-inline: t.$carousel-track-padding-mobile;
     }
+  }
+}
 
-    &__card {
-      height: t.$carousel-card-height-mobile;
-    }
+@media (prefers-reduced-motion: reduce) {
+  .slider__card,
+  .slider__arrow {
+    transition-duration: 1ms;
   }
 }
