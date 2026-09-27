@@ -1,16 +1,7 @@
 @use '../../shared/styles/tokens' as t;
 
 .library-page {
-  min-height: 50vh;
-  padding: t.$size-5 clamp(t.$size-2, 6vw, t.$carousel-padding-desktop);
-
-  h1,
-  p {
-    margin: 0;
-  }
-
-  p {
-    margin-top: t.$size-1;
-    color: t.$color-muted;
-  }
+  min-height: t.$library-min-height;
+  overflow: hidden;
+  background: t.$color-bg;
 }

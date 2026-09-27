@@ -1,0 +1,77 @@
+@use '../../shared/styles/tokens' as t;
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: t.$library-content-width;
+  margin-inline: auto;
+  padding: t.$size-5 t.$library-padding-desktop;
+
+  &__controls,
+  &__pages {
+    display: flex;
+    align-items: center;
+    gap: t.$size-2;
+  }
+
+  &__button {
+    display: grid;
+    width: t.$pagination-button-size;
+    height: t.$pagination-button-size;
+    flex: none;
+    place-items: center;
+    padding: 0;
+    border: t.$border-width solid t.$color-ink;
+    border-radius: 50%;
+    background: t.$color-white;
+    color: t.$color-ink;
+    font-size: t.$font-label;
+    font-weight: t.$weight-bold;
+    cursor: pointer;
+    transition:
+      background-color t.$library-transition ease,
+      color t.$library-transition ease,
+      transform t.$library-transition ease;
+
+    &:hover:not(:disabled, [aria-current='page']) {
+      background: t.$color-primary-hover;
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(t.$library-control-press);
+    }
+
+    &[aria-current='page'] {
+      background: t.$color-menu-close;
+      color: t.$color-white;
+    }
+
+    &:disabled {
+      border-color: t.$color-outline-variant;
+      background: t.$color-bg;
+      cursor: not-allowed;
+      opacity: t.$pagination-disabled-opacity;
+    }
+  }
+
+  &__arrow {
+    font-size: t.$pagination-arrow-size;
+    font-weight: t.$weight-medium;
+    line-height: 1;
+  }
+
+  @media (max-width: t.$breakpoint-tablet) {
+    padding-inline: t.$library-padding-tablet;
+  }
+
+  @media (max-width: t.$breakpoint-mobile) {
+    padding: t.$size-4 t.$library-padding-mobile;
+
+    &__controls,
+    &__pages {
+      gap: t.$size-1;
+    }
+  }
+}
