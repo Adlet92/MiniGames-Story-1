@@ -1,17 +1,13 @@
+import { createGamesList } from './games-list';
 import './library-page.scss';
+import { createLibraryToolbar } from './library-toolbar';
+import type { LibraryPageOptions } from './library-types';
+import { createPagination } from './pagination';
 
-export function createLibraryPage(): HTMLElement {
+export function createLibraryPage(options: LibraryPageOptions): HTMLElement {
   const page: HTMLElement = document.createElement('main');
   page.className = 'library-page';
   page.setAttribute('aria-labelledby', 'library-page-title');
-
-  const heading: HTMLHeadingElement = document.createElement('h1');
-  heading.id = 'library-page-title';
-  heading.textContent = 'Game Library';
-
-  const description: HTMLParagraphElement = document.createElement('p');
-  description.textContent = 'Browse all MiniGames.';
-
-  page.append(heading, description);
+  page.append(createLibraryToolbar(), createGamesList(options.onGameDetails), createPagination());
   return page;
 }

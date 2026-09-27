@@ -1,0 +1,147 @@
+@use '../../shared/styles/tokens' as t;
+
+.game-details-dialog {
+  box-sizing: border-box;
+  width: t.$game-dialog-width;
+  max-width: calc(100vw - (t.$size-4 * 2));
+  max-height: calc(100dvh - (t.$size-4 * 2));
+  margin: auto;
+  padding: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  border: t.$auth-dialog-border solid t.$color-ink;
+  border-radius: t.$auth-dialog-radius;
+  background: t.$color-bg;
+  box-shadow: t.$auth-dialog-shadow t.$auth-dialog-shadow 0 t.$color-auth-shadow;
+  color: t.$color-ink;
+  opacity: 0;
+  transform: translateY(t.$size-2) scale(0.97);
+  transition:
+    opacity t.$auth-dialog-duration ease,
+    transform t.$auth-dialog-duration ease;
+
+  &::backdrop {
+    background: transparent;
+    transition: background t.$auth-dialog-duration ease;
+  }
+
+  &--open {
+    opacity: 1;
+    transform: none;
+
+    &::backdrop {
+      background: t.$overlay-color;
+    }
+  }
+
+  &__hero {
+    position: relative;
+    aspect-ratio: t.$game-dialog-hero-ratio;
+    overflow: hidden;
+
+    img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  &__close {
+    position: absolute;
+    top: t.$size-2;
+    right: t.$size-2;
+    display: grid;
+    width: t.$game-dialog-close-size;
+    height: t.$game-dialog-close-size;
+    place-items: center;
+    padding: 0 0 t.$size-05;
+    border: t.$border-width solid t.$color-ink;
+    border-radius: 50%;
+    background: t.$color-white;
+    color: t.$color-ink;
+    font-size: t.$game-dialog-close-font;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  &__content {
+    display: grid;
+    gap: t.$size-2;
+    padding: t.$size-4;
+
+    h2,
+    p {
+      margin: 0;
+    }
+
+    h2 {
+      font-size: t.$game-dialog-title;
+    }
+
+    p {
+      color: t.$color-muted;
+      font-size: t.$font-label;
+      line-height: 1.5;
+    }
+  }
+
+  &__badges,
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: t.$size-1;
+    flex-wrap: wrap;
+  }
+
+  &__badges span {
+    padding: t.$size-05 t.$size-1;
+    border-radius: t.$library-badge-radius;
+    background: t.$color-primary-hover;
+    font-size: t.$library-badge-font;
+    font-weight: t.$weight-bold;
+  }
+
+  &__play,
+  &__favorite {
+    min-height: t.$game-dialog-action-height;
+    padding: t.$button-y t.$button-x;
+    border: t.$border-width solid t.$color-ink;
+    border-radius: t.$radius-small;
+    color: t.$color-ink;
+    font-weight: t.$weight-bold;
+    cursor: pointer;
+  }
+
+  &__play {
+    background: t.$color-primary;
+  }
+
+  &__favorite {
+    background: t.$color-white;
+
+    &[aria-pressed='true'] {
+      background: t.$color-primary-hover;
+    }
+  }
+
+  @media (max-width: t.$breakpoint-mobile) {
+    max-width: calc(100vw - (t.$size-2 * 2));
+    max-height: calc(100dvh - (t.$size-2 * 2));
+    border-radius: t.$library-card-radius-small;
+    box-shadow: t.$size-05 t.$size-05 0 t.$color-auth-shadow;
+
+    &__content {
+      padding: t.$size-3;
+
+      h2 {
+        font-size: t.$library-title-mobile;
+      }
+    }
+
+    &__actions {
+      align-items: stretch;
+      flex-direction: column;
+    }
+  }
+}
