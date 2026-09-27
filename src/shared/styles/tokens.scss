@@ -29,7 +29,7 @@ $icon-size: 32px;
 $breakpoint-mobile: 375px;
 $breakpoint-tablet: 768px;
 $breakpoint-desktop: 1920px;
-$dialog-width: 440px;
+$dialog-width: 420px;
 $overlay-color: rgb(36 33 69 / 45%);
 $color-primary-hover: #fff4c2;
 $opacity-disabled: 0.6;
@@ -119,6 +119,10 @@ $carousel-metric-icon-size: 20px;
 $carousel-metric-gap: 4px;
 $carousel-gap-mobile: 2px;
 $carousel-track-padding-mobile: 4px;
+$carousel-transition: 160ms;
+$carousel-slide-duration: 420ms;
+$carousel-slide-easing: cubic-bezier(0.22, 1, 0.36, 1);
+$carousel-arrow-press: 2px;
 
 // leaderboard tokens
 $color-tertiary: #3a2ebf;
