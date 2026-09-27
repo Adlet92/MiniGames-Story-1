@@ -1,4 +1,4 @@
-@use '../../shared/styles/tokens' as t;
+@use "../../shared/styles/tokens" as t;
 
 .footer {
   width: 100%;
@@ -141,7 +141,11 @@
   }
 
   &__symbol {
-    font-size: 20px;
+    display: block;
+    width: 20px;
+    height: 20px;
+    filter: brightness(0) invert(1);
+    object-fit: contain;
   }
 
   &__bottom {
@@ -173,6 +177,7 @@
     overflow: hidden;
     border-radius: 50%;
     font-weight: t.$weight-bold;
+    object-fit: contain;
   }
 
   &__credit--rs &__credit-icon {
@@ -189,14 +194,14 @@
   }
 
   .material-symbols-rounded {
-    font-family: 'Material Symbols Rounded', sans-serif;
+    font-family: "Material Symbols Rounded", sans-serif;
     font-style: normal;
     font-weight: 400;
     font-variation-settings:
-      'FILL' 0,
-      'wght' 400,
-      'GRAD' 0,
-      'opsz' 20;
+      "FILL" 0,
+      "wght" 400,
+      "GRAD" 0,
+      "opsz" 20;
     line-height: 1;
   }
 
@@ -234,7 +239,8 @@
     }
 
     &__symbol {
-      font-size: t.$font-nav;
+      width: t.$font-nav;
+      height: t.$font-nav;
     }
 
     &__bottom {
