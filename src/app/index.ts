@@ -19,7 +19,10 @@ const outlet: HTMLDivElement = document.createElement('div');
 outlet.id = 'page-content';
 
 const router: AppRouter = createRouter(outlet, {
-  home: { createPage: createHomePage, title: 'MiniGames | Home' },
+  home: {
+    createPage: (): HTMLElement => createHomePage({ onGameDetails: gameDetailsDialog.open }),
+    title: 'MiniGames | Home',
+  },
   library: {
     createPage: (): HTMLElement => createLibraryPage({ onGameDetails: gameDetailsDialog.open }),
     title: 'MiniGames | Library',
