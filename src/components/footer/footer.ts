@@ -1,7 +1,7 @@
+import type { AppPage } from '../../app/router';
 import brandUrl from '../../assets/icons/brand.png';
 import chatUrl from '../../assets/icons/chat.png';
 import codeUrl from '../../assets/icons/code.png';
-import rsLogoUrl from '../../assets/icons/rs-logo.png';
 import rssUrl from '../../assets/icons/rss_feed.png';
 import shareUrl from '../../assets/icons/share.png';
 import './footer.scss';
@@ -9,6 +9,7 @@ import './footer.scss';
 interface FooterLinkData {
   label: string;
   href: string;
+  targetPage: AppPage;
 }
 
 interface FooterGroupData {
@@ -17,19 +18,31 @@ interface FooterGroupData {
   links: FooterLinkData[];
 }
 
+export interface FooterOptions {
+  onNavigate: (page: AppPage) => void;
+}
+
 const HOME_URL: string = '#/';
 const RS_SCHOOL_URL: string = 'https://rs.school/courses/short-track';
 const STUDENT_GITHUB_URL: string = 'https://github.com/Adlet92';
 
-function createLink(data: FooterLinkData, className: string): HTMLAnchorElement {
+function createLink(
+  data: FooterLinkData,
+  className: string,
+  options: FooterOptions,
+): HTMLAnchorElement {
   const link: HTMLAnchorElement = document.createElement('a');
   link.className = className;
   link.href = data.href;
   link.textContent = data.label;
+  link.addEventListener('click', (event: MouseEvent): void => {
+    event.preventDefault();
+    options.onNavigate(data.targetPage);
+  });
   return link;
 }
 
-function createNavigationGroup(data: FooterGroupData): HTMLElement {
+function createNavigationGroup(data: FooterGroupData, options: FooterOptions): HTMLElement {
   const navigation: HTMLElement = document.createElement('nav');
   navigation.className = 'footer__link-group';
   navigation.setAttribute('aria-label', data.ariaLabel);
@@ -42,7 +55,7 @@ function createNavigationGroup(data: FooterGroupData): HTMLElement {
   list.className = 'footer__link-list';
   for (const linkData of data.links) {
     const item: HTMLLIElement = document.createElement('li');
-    item.append(createLink(linkData, 'footer__link'));
+    item.append(createLink(linkData, 'footer__link', options));
     list.append(item);
   }
 
@@ -50,17 +63,26 @@ function createNavigationGroup(data: FooterGroupData): HTMLElement {
   return navigation;
 }
 
-function createSocialLink(iconUrl: string, label: string): HTMLAnchorElement {
+function createSocialLink(
+  iconUrl: string,
+  label: string,
+  options: FooterOptions,
+): HTMLAnchorElement {
   const link: HTMLAnchorElement = document.createElement('a');
   link.className = 'footer__social-link';
   link.href = HOME_URL;
   link.setAttribute('aria-label', label);
+  link.addEventListener('click', (event: MouseEvent): void => {
+    event.preventDefault();
+    options.onNavigate('home');
+  });
 
   const icon: HTMLImageElement = document.createElement('img');
-  icon.className = 'footer__social-icon';
+  icon.className = 'footer__symbol';
   icon.src = iconUrl;
   icon.alt = '';
-  icon.setAttribute('aria-hidden', 'true');
+  icon.width = 20;
+  icon.height = 20;
   link.append(icon);
   return link;
 }
@@ -68,7 +90,8 @@ function createSocialLink(iconUrl: string, label: string): HTMLAnchorElement {
 function createExternalCredit(
   href: string,
   label: string,
-  iconUrl: string,
+  iconText: string | undefined,
+  iconUrl: string | undefined,
   modifier: string,
 ): HTMLAnchorElement {
   const link: HTMLAnchorElement = document.createElement('a');
@@ -77,22 +100,26 @@ function createExternalCredit(
   link.target = '_blank';
   link.rel = 'noreferrer';
 
-  const iconWrapper: HTMLSpanElement = document.createElement('span');
-  iconWrapper.className = 'footer__credit-icon';
-  iconWrapper.setAttribute('aria-hidden', 'true');
-  const icon: HTMLImageElement = document.createElement('img');
-  icon.className = 'footer__credit-image';
-  icon.src = iconUrl;
-  icon.alt = '';
-  iconWrapper.append(icon);
+  const icon: HTMLImageElement | HTMLSpanElement =
+    iconUrl === undefined ? document.createElement('span') : document.createElement('img');
+  icon.className = 'footer__credit-icon';
+  if (icon instanceof HTMLImageElement) {
+    icon.src = iconUrl ?? '';
+    icon.alt = '';
+    icon.width = 24;
+    icon.height = 24;
+  } else {
+    icon.textContent = iconText ?? '';
+    icon.setAttribute('aria-hidden', 'true');
+  }
 
   const text: HTMLSpanElement = document.createElement('span');
   text.textContent = label;
-  link.append(iconWrapper, text);
+  link.append(icon, text);
   return link;
 }
 
-export function createFooter(): HTMLElement {
+export function createFooter(options: FooterOptions): HTMLElement {
   const footer: HTMLElement = document.createElement('footer');
   footer.className = 'footer';
 
@@ -108,6 +135,10 @@ export function createFooter(): HTMLElement {
   brand.className = 'footer__brand';
   brand.href = HOME_URL;
   brand.setAttribute('aria-label', 'MiniGames home');
+  brand.addEventListener('click', (event: MouseEvent): void => {
+    event.preventDefault();
+    options.onNavigate('home');
+  });
   const logo: HTMLImageElement = document.createElement('img');
   logo.className = 'footer__logo';
   logo.src = brandUrl;
@@ -127,28 +158,20 @@ export function createFooter(): HTMLElement {
   const navigationArea: HTMLDivElement = document.createElement('div');
   navigationArea.className = 'footer__navigation-area';
   const homeLinks: FooterLinkData[] = [
-    { label: 'Home', href: HOME_URL },
-    { label: 'Library', href: HOME_URL },
-    { label: 'Categories', href: HOME_URL },
-    { label: 'Tournaments', href: HOME_URL },
+    { label: 'Home', href: HOME_URL, targetPage: 'home' },
+    { label: 'Library', href: '#/library', targetPage: 'library' },
+    { label: 'Categories', href: HOME_URL, targetPage: 'home' },
+    { label: 'Tournaments', href: HOME_URL, targetPage: 'home' },
   ];
   const companyLinks: FooterLinkData[] = [
-    { label: 'About Us', href: HOME_URL },
-    { label: 'Contact', href: HOME_URL },
-    { label: 'Privacy Policy', href: HOME_URL },
-    { label: 'Terms of Service', href: HOME_URL },
+    { label: 'About Us', href: HOME_URL, targetPage: 'home' },
+    { label: 'Contact', href: HOME_URL, targetPage: 'home' },
+    { label: 'Privacy Policy', href: HOME_URL, targetPage: 'home' },
+    { label: 'Terms of Service', href: HOME_URL, targetPage: 'home' },
   ];
   navigationArea.append(
-    createNavigationGroup({
-      title: 'Explore',
-      ariaLabel: 'Explore',
-      links: homeLinks,
-    }),
-    createNavigationGroup({
-      title: 'Company',
-      ariaLabel: 'Company',
-      links: companyLinks,
-    }),
+    createNavigationGroup({ title: 'Explore', ariaLabel: 'Explore', links: homeLinks }, options),
+    createNavigationGroup({ title: 'Company', ariaLabel: 'Company', links: companyLinks }, options),
   );
 
   const community: HTMLElement = document.createElement('nav');
@@ -160,9 +183,9 @@ export function createFooter(): HTMLElement {
   const socialLinks: HTMLDivElement = document.createElement('div');
   socialLinks.className = 'footer__social-links';
   socialLinks.append(
-    createSocialLink(shareUrl, 'Share MiniGames'),
-    createSocialLink(chatUrl, 'MiniGames community chat'),
-    createSocialLink(rssUrl, 'MiniGames news feed'),
+    createSocialLink(shareUrl, 'Share MiniGames', options),
+    createSocialLink(chatUrl, 'MiniGames community chat', options),
+    createSocialLink(rssUrl, 'MiniGames news feed', options),
   );
   community.append(communityHeading, socialLinks);
 
@@ -182,12 +205,14 @@ export function createFooter(): HTMLElement {
   const rsSchool: HTMLAnchorElement = createExternalCredit(
     RS_SCHOOL_URL,
     'RS School',
-    rsLogoUrl,
+    'RS',
+    undefined,
     'rs',
   );
   const github: HTMLAnchorElement = createExternalCredit(
     STUDENT_GITHUB_URL,
     '@Adlet92',
+    undefined,
     codeUrl,
     'github',
   );
