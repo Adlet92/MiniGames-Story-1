@@ -10,7 +10,7 @@ import type { GamesListResponse, PublicGame } from '../../services/games-api';
 import { fetchGames } from '../../services/games-api';
 import { getGameImage } from './game-images';
 import './games-list.scss';
-import type { LibraryFilters, LibraryPagination } from './library-types';
+import type { LibraryFilters, LibraryPagination, LibraryViewState } from './library-types';
 
 export interface GamesListOptions {
   onDetails: (slug: string) => void;
@@ -20,8 +20,7 @@ export interface GamesListOptions {
 
 export interface GamesListController {
   element: HTMLElement;
-  updateFilters: (filters: LibraryFilters) => void;
-  updatePage: (page: number) => void;
+  updateState: (state: LibraryViewState) => void;
 }
 
 const PAGE_SIZE: number = 6;
@@ -202,21 +201,21 @@ export function createGamesList(options: GamesListOptions): GamesListController 
     }
   };
 
-  const updateFilters: (filters: LibraryFilters) => void = (filters: LibraryFilters): void => {
-    currentFilters = filters;
-    currentPage = FIRST_PAGE;
-    void loadGames(filters, currentPage);
-  };
+  const updateState: (state: LibraryViewState) => void = (state: LibraryViewState): void => {
+    const hasSameState: boolean =
+      currentFilters?.category === state.category &&
+      currentFilters.sort === state.sort &&
+      currentPage === state.page;
 
-  const updatePage: (page: number) => void = (page: number): void => {
-    if (currentFilters === undefined || page === currentPage || page < FIRST_PAGE) {
+    if (hasSameState) {
       return;
     }
 
-    currentPage = page;
+    currentFilters = { category: state.category, sort: state.sort };
+    currentPage = Math.max(FIRST_PAGE, Math.trunc(state.page));
     void loadGames(currentFilters, currentPage);
   };
 
   content.replaceChildren(createCardGridSkeleton(PAGE_SIZE, 'Loading Library games'));
-  return { element: section, updateFilters, updatePage };
+  return { element: section, updateState };
 }

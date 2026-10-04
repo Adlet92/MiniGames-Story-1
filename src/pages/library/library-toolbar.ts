@@ -7,7 +7,6 @@ import type { Snackbar } from '../../components/ui/snackbar/snackbar';
 import type { CategoriesResponse, Category } from '../../services/categories-api';
 import { fetchCategories } from '../../services/categories-api';
 import type { CategorySlug, GameSort } from '../../services/games-api';
-import { DEFAULT_GAME_SORT } from '../../services/games-api';
 import './library-toolbar.scss';
 import type { LibraryFilters } from './library-types';
 
@@ -17,8 +16,14 @@ interface SortOption {
 }
 
 export interface LibraryToolbarOptions {
+  initialFilters: LibraryFilters;
   onFiltersChange: (filters: LibraryFilters) => void;
   onNotify: Snackbar['show'];
+}
+
+export interface LibraryToolbarController {
+  element: HTMLElement;
+  updateFilters: (filters: LibraryFilters) => void;
 }
 
 const CATEGORY_SKELETON_COUNT: number = 7;
@@ -35,7 +40,7 @@ function getLoadErrorMessage(error: unknown): string {
     : 'An unexpected error occurred while loading categories.';
 }
 
-export function createLibraryToolbar(options: LibraryToolbarOptions): HTMLElement {
+export function createLibraryToolbar(options: LibraryToolbarOptions): LibraryToolbarController {
   const section: HTMLElement = document.createElement('section');
   section.className = 'library-toolbar';
   section.setAttribute('aria-labelledby', 'library-page-title');
@@ -52,19 +57,15 @@ export function createLibraryToolbar(options: LibraryToolbarOptions): HTMLElemen
   chips.setAttribute('role', 'group');
   chips.setAttribute('aria-label', 'Filter games by category');
 
-  let activeChip: HTMLButtonElement | undefined;
-  let selectedCategory: CategorySlug | undefined;
-  let selectedSort: GameSort = DEFAULT_GAME_SORT;
+  const categoryButtons: Map<CategorySlug, HTMLButtonElement> = new Map<
+    CategorySlug,
+    HTMLButtonElement
+  >();
+  const sortItems: Map<GameSort, HTMLLIElement> = new Map<GameSort, HTMLLIElement>();
+  let selectedCategory: CategorySlug = options.initialFilters.category;
+  let selectedSort: GameSort = options.initialFilters.sort;
   let requestVersion: number = 0;
   let hasFailedRequest: boolean = false;
-
-  const dispatchFilters: () => void = (): void => {
-    if (selectedCategory === undefined) {
-      return;
-    }
-
-    options.onFiltersChange({ category: selectedCategory, sort: selectedSort });
-  };
 
   const renderCategories: (categories: Category[]) => void = (categories: Category[]): void => {
     const defaultCategory: Category | undefined =
@@ -77,7 +78,17 @@ export function createLibraryToolbar(options: LibraryToolbarOptions): HTMLElemen
       return;
     }
 
-    selectedCategory = defaultCategory.slug;
+    const hasSelectedCategory: boolean = categories.some(
+      (category: Category): boolean => category.slug === selectedCategory,
+    );
+    const fallbackCategory: CategorySlug = defaultCategory.slug;
+    const shouldCorrectCategory: boolean = !hasSelectedCategory;
+
+    if (shouldCorrectCategory) {
+      selectedCategory = fallbackCategory;
+    }
+
+    categoryButtons.clear();
     const fragment: DocumentFragment = document.createDocumentFragment();
 
     for (const category of categories) {
@@ -89,26 +100,22 @@ export function createLibraryToolbar(options: LibraryToolbarOptions): HTMLElemen
       chip.textContent = category.label;
       chip.setAttribute('aria-pressed', String(isActive));
 
-      if (isActive) {
-        activeChip = chip;
-      }
-
       chip.addEventListener('click', (): void => {
         if (selectedCategory === category.slug) {
           return;
         }
 
-        activeChip?.setAttribute('aria-pressed', 'false');
-        chip.setAttribute('aria-pressed', 'true');
-        activeChip = chip;
-        selectedCategory = category.slug;
-        dispatchFilters();
+        options.onFiltersChange({ category: category.slug, sort: selectedSort });
       });
+      categoryButtons.set(category.slug, chip);
       fragment.append(chip);
     }
 
     chips.replaceChildren(fragment);
-    dispatchFilters();
+
+    if (shouldCorrectCategory) {
+      options.onFiltersChange({ category: fallbackCategory, sort: selectedSort });
+    }
   };
 
   const sort: HTMLDivElement = document.createElement('div');
@@ -154,22 +161,15 @@ export function createLibraryToolbar(options: LibraryToolbarOptions): HTMLElemen
     button.textContent = option.label;
     button.addEventListener('click', (): void => {
       const hasChanged: boolean = selectedSort !== option.value;
-      selectedSort = option.value;
-      const items: NodeListOf<HTMLLIElement> = sortList.querySelectorAll('[role="option"]');
-
-      for (const listItem of items) {
-        listItem.setAttribute('aria-selected', String(listItem === item));
-      }
-
-      updateSortLabel();
       closeSort();
       sortButton.focus();
 
       if (hasChanged) {
-        dispatchFilters();
+        options.onFiltersChange({ category: selectedCategory, sort: option.value });
       }
     });
     item.append(button);
+    sortItems.set(option.value, item);
     sortList.append(item);
   }
 
@@ -233,12 +233,27 @@ export function createLibraryToolbar(options: LibraryToolbarOptions): HTMLElemen
     }
   };
 
-  updateSortLabel();
+  const updateFilters: (filters: LibraryFilters) => void = (filters: LibraryFilters): void => {
+    selectedCategory = filters.category;
+    selectedSort = filters.sort;
+
+    for (const [category, button] of categoryButtons) {
+      button.setAttribute('aria-pressed', String(category === selectedCategory));
+    }
+
+    for (const [sortValue, item] of sortItems) {
+      item.setAttribute('aria-selected', String(sortValue === selectedSort));
+    }
+
+    updateSortLabel();
+  };
+
+  updateFilters(options.initialFilters);
   sort.append(sortButton, sortList);
   controls.append(chips, sort);
   section.append(heading, controls);
   requestAnimationFrame((): void => {
     void loadCategories();
   });
-  return section;
+  return { element: section, updateFilters };
 }

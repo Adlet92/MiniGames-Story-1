@@ -11,6 +11,7 @@ export interface PaginationOptions {
 
 export interface PaginationController {
   element: HTMLElement;
+  setPage: (page: number) => void;
   update: (pagination: LibraryPagination) => void;
 }
 
@@ -103,8 +104,14 @@ export function createPagination(options: PaginationOptions): PaginationControll
     render();
   };
 
+  const setPage: (page: number) => void = (page: number): void => {
+    totalPages = Math.max(totalPages, page);
+    activePage = normalizePage(page, totalPages);
+    render();
+  };
+
   render();
   controls.append(previous, pageButtons, next);
   navigation.append(controls);
-  return { element: navigation, update };
+  return { element: navigation, setPage, update };
 }
