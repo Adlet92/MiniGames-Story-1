@@ -20,13 +20,49 @@ export function createCardSkeleton(count: number, label: string): HTMLElement {
   return container;
 }
 
-export function createErrorBanner(message: string, onRetry: () => void): HTMLElement {
+export function createTableSkeleton(
+  rowCount: number,
+  columnCount: number,
+  label: string,
+): HTMLElement {
+  const container: HTMLDivElement = document.createElement('div');
+  container.className = 'data-state data-state--table-skeleton';
+  container.setAttribute('role', 'status');
+  container.setAttribute('aria-label', label);
+
+  for (let rowIndex: number = 0; rowIndex <= rowCount; rowIndex += 1) {
+    const row: HTMLDivElement = document.createElement('div');
+    row.className = 'data-state__skeleton-row';
+    row.dataset.header = String(rowIndex === 0);
+
+    for (let columnIndex: number = 0; columnIndex < columnCount; columnIndex += 1) {
+      const cell: HTMLSpanElement = document.createElement('span');
+      cell.className = 'data-state__skeleton-cell';
+      cell.setAttribute('aria-hidden', 'true');
+      row.append(cell);
+    }
+
+    container.append(row);
+  }
+
+  const text: HTMLSpanElement = document.createElement('span');
+  text.className = 'data-state__visually-hidden';
+  text.textContent = label;
+  container.append(text);
+  return container;
+}
+
+export function createErrorBanner(
+  message: string,
+  onRetry: () => void,
+  titleText: string = 'Unable to load content',
+): HTMLElement {
   const banner: HTMLDivElement = document.createElement('div');
   banner.className = 'data-state data-state--error';
   banner.setAttribute('role', 'alert');
   const title: HTMLHeadingElement = document.createElement('h3');
   title.className = 'data-state__title';
-  title.textContent = 'Unable to load featured games';
+  title.textContent = titleText;
   const description: HTMLParagraphElement = document.createElement('p');
   description.className = 'data-state__message';
   description.textContent = message;
