@@ -18,8 +18,14 @@ interface AuthContent {
 }
 
 export interface AuthDialog {
+  close: () => void;
   element: HTMLDialogElement;
   open: (mode: AuthMode) => void;
+}
+
+export interface AuthDialogOptions {
+  onModeChange: (mode: AuthMode) => void;
+  onRequestClose: () => void;
 }
 
 const AUTH_CONTENT: Record<AuthMode, AuthContent> = {
@@ -128,7 +134,7 @@ function createField(field: AuthField): HTMLLabelElement {
   return label;
 }
 
-export function createAuthDialog(): AuthDialog {
+export function createAuthDialog(options: AuthDialogOptions): AuthDialog {
   const element: HTMLDialogElement = document.createElement('dialog');
   element.className = 'auth-dialog';
   element.setAttribute('aria-labelledby', 'auth-title');
@@ -171,7 +177,7 @@ export function createAuthDialog(): AuthDialog {
   rememberText.textContent = 'Remember me';
   rememberLabel.append(rememberInput, rememberText);
   const forgotLink: HTMLAnchorElement = document.createElement('a');
-  forgotLink.href = '#/';
+  forgotLink.href = '/';
   forgotLink.textContent = 'Forgot password?';
   loginOptions.append(rememberLabel, forgotLink);
 
@@ -276,6 +282,12 @@ export function createAuthDialog(): AuthDialog {
 
   function open(mode: AuthMode): void {
     if (element.open) {
+      if (isClosing) {
+        clearTimeout(closeTimer);
+        isClosing = false;
+        element.classList.add('auth-dialog--open');
+      }
+
       switchMode(mode);
       return;
     }
@@ -290,16 +302,22 @@ export function createAuthDialog(): AuthDialog {
     openFrame = requestAnimationFrame((): void => element.classList.add('auth-dialog--open'));
   }
 
-  loginTab.addEventListener('click', (): void => switchMode('login'));
-  signupTab.addEventListener('click', (): void => switchMode('signup'));
+  const requestMode: (mode: AuthMode) => void = (mode: AuthMode): void => {
+    if (mode !== activeMode) {
+      options.onModeChange(mode);
+    }
+  };
+
+  loginTab.addEventListener('click', (): void => requestMode('login'));
+  signupTab.addEventListener('click', (): void => requestMode('signup'));
   footerSwitch.addEventListener('click', (): void =>
-    switchMode(activeMode === 'login' ? 'signup' : 'login'),
+    requestMode(activeMode === 'login' ? 'signup' : 'login'),
   );
   form.addEventListener('submit', (event: SubmitEvent): void => event.preventDefault());
   forgotLink.addEventListener('click', (event: MouseEvent): void => event.preventDefault());
   element.addEventListener('cancel', (event: Event): void => {
     event.preventDefault();
-    closeDialog();
+    options.onRequestClose();
   });
   element.addEventListener('click', (event: MouseEvent): void => {
     const bounds: DOMRect = element.getBoundingClientRect();
@@ -309,7 +327,7 @@ export function createAuthDialog(): AuthDialog {
       event.clientY < bounds.top ||
       event.clientY > bounds.bottom;
     if (isBackdropClick) {
-      closeDialog();
+      options.onRequestClose();
     }
   });
   element.addEventListener('transitionend', (event: TransitionEvent): void => {
@@ -319,5 +337,5 @@ export function createAuthDialog(): AuthDialog {
   });
 
   renderMode('login');
-  return { element, open };
+  return { close: closeDialog, element, open };
 }

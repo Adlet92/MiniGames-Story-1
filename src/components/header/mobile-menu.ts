@@ -22,7 +22,7 @@ const MOBILE_NAVIGATION_ITEMS: MobileNavigationItem[] = [
 ];
 
 function getPageHref(page: AppPage): string {
-  return page === 'home' ? '#/' : '#/library';
+  return page === 'home' ? '/' : '/library';
 }
 
 export function createMobileMenu(trigger: HTMLButtonElement, options: HeaderOptions): MobileMenu {
@@ -34,7 +34,7 @@ export function createMobileMenu(trigger: HTMLButtonElement, options: HeaderOpti
   top.className = 'mobile-menu__top';
   const brand: HTMLAnchorElement = document.createElement('a');
   brand.className = 'mobile-menu__brand';
-  brand.href = '#/';
+  brand.href = '/';
   const logo: HTMLImageElement = document.createElement('img');
   logo.src = brandUrl;
   logo.alt = '';

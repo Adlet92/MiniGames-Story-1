@@ -1,15 +1,5 @@
+import type { AppPage } from '../../app/router';
 import heroImageUrl from '../../assets/hero-image.png';
-// import islandersImage from '../../assets/islanders-new-shores-card.jpg';
-// import winterBurrowImage from '../../assets/winter-burrow-card.jpg';
-
-// import catMailImage from '../../assets/cat-mail-co-card.jpg';
-// import heartopiaImage from '../../assets/heartopia-card.jpg';
-// import paliaImage from '../../assets/palia-card.jpg';
-// import shelvePotionsImage from '../../assets/shelve-the-potions-card.jpg';
-// import tailsideImage from '../../assets/tailside-cozy-cafe-sim-card.jpg';
-// import tinyGladeImage from '../../assets/tiny-glade-card.jpg';
-// import vacationCafeImage from '../../assets/vacation-cafe-simulator-card.jpg';
-
 import previousIcon from '../../assets/icons/arrow_back.svg';
 import nextIcon from '../../assets/icons/arrow_forward.svg';
 import heartIcon from '../../assets/icons/heart_icon.svg';
@@ -25,6 +15,7 @@ import type { SnackbarVariant } from '../ui/snackbar/snackbar';
 
 export interface HomePageOptions {
   onGameDetails: (slug: string) => void;
+  onNavigate: (page: AppPage) => void;
   onNotify: (message: string, variant: SnackbarVariant) => void;
 }
 
@@ -38,7 +29,7 @@ export function createHomePage(options: HomePageOptions): HTMLElement {
   };
 
   homePage.append(
-    createHeroSection(heroImageUrl),
+    createHeroSection(heroImageUrl, (): void => options.onNavigate('library')),
     createSliderSection(sliderAssets, {
       onGameDetails: options.onGameDetails,
       onNotify: options.onNotify,

@@ -11,7 +11,24 @@ export interface LibraryPagination {
   totalPages: number;
 }
 
+export interface LibraryViewState extends LibraryFilters {
+  page: number;
+}
+
+export interface LibraryStateUpdate {
+  category?: CategorySlug;
+  page?: number;
+  sort?: GameSort;
+}
+
 export interface LibraryPageOptions {
+  initialState: LibraryViewState;
   onGameDetails: (slug: string) => void;
   onNotify: Snackbar['show'];
+  onStateChange: (update: LibraryStateUpdate) => void;
+}
+
+export interface LibraryPageController {
+  element: HTMLElement;
+  updateState: (state: LibraryViewState) => void;
 }
