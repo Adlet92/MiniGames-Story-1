@@ -6,6 +6,11 @@ export interface LibraryFilters {
   sort: GameSort;
 }
 
+export interface LibraryPagination {
+  page: number;
+  totalPages: number;
+}
+
 export interface LibraryPageOptions {
   onGameDetails: (slug: string) => void;
   onNotify: Snackbar['show'];

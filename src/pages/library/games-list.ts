@@ -10,19 +10,22 @@ import type { GamesListResponse, PublicGame } from '../../services/games-api';
 import { fetchGames } from '../../services/games-api';
 import { getGameImage } from './game-images';
 import './games-list.scss';
-import type { LibraryFilters } from './library-types';
+import type { LibraryFilters, LibraryPagination } from './library-types';
 
 export interface GamesListOptions {
   onDetails: (slug: string) => void;
   onNotify: Snackbar['show'];
+  onPaginationChange: (pagination: LibraryPagination) => void;
 }
 
 export interface GamesListController {
   element: HTMLElement;
   updateFilters: (filters: LibraryFilters) => void;
+  updatePage: (page: number) => void;
 }
 
 const PAGE_SIZE: number = 6;
+const FIRST_PAGE: number = 1;
 const likesFormatter: Intl.NumberFormat = new Intl.NumberFormat('en', {
   notation: 'compact',
   maximumFractionDigits: 1,
@@ -126,9 +129,11 @@ export function createGamesList(options: GamesListOptions): GamesListController 
   let hasFailedRequest: boolean = false;
   let activeRequest: AbortController | undefined;
   let currentFilters: LibraryFilters | undefined;
+  let currentPage: number = FIRST_PAGE;
 
-  const loadGames: (filters: LibraryFilters) => Promise<void> = async (
+  const loadGames: (filters: LibraryFilters, page: number) => Promise<void> = async (
     filters: LibraryFilters,
+    page: number,
   ): Promise<void> => {
     const currentRequest: number = ++requestVersion;
     activeRequest?.abort();
@@ -140,7 +145,7 @@ export function createGamesList(options: GamesListOptions): GamesListController 
         {
           category: filters.category,
           sort: filters.sort,
-          page: 1,
+          page,
           limit: PAGE_SIZE,
         },
         activeRequest.signal,
@@ -150,19 +155,28 @@ export function createGamesList(options: GamesListOptions): GamesListController 
         return;
       }
 
-      if (response.data.length === 0) {
-        content.replaceChildren(
-          createEmptyState('No games found', 'There are no games to display right now.'),
-        );
-        return;
-      }
-
-      content.replaceChildren(createGamesGrid(response.data, options.onDetails));
+      const totalPages: number = Math.max(FIRST_PAGE, Math.trunc(response.meta.totalPages));
+      const responsePage: number = Math.max(FIRST_PAGE, Math.trunc(response.meta.page));
+      const pagination: LibraryPagination = {
+        page: Math.min(responsePage, totalPages),
+        totalPages,
+      };
+      currentPage = pagination.page;
+      options.onPaginationChange(pagination);
 
       if (hasFailedRequest) {
         options.onNotify('Library games loaded successfully.', 'success');
         hasFailedRequest = false;
       }
+
+      if (response.data.length === 0) {
+        content.replaceChildren(
+          createEmptyState('Data Not Found', 'There are no games for the selected criteria.'),
+        );
+        return;
+      }
+
+      content.replaceChildren(createGamesGrid(response.data, options.onDetails));
     } catch (error: unknown) {
       if (
         currentRequest !== requestVersion ||
@@ -178,7 +192,7 @@ export function createGamesList(options: GamesListOptions): GamesListController 
           getLoadErrorMessage(error),
           (): void => {
             if (currentFilters !== undefined) {
-              void loadGames(currentFilters);
+              void loadGames(currentFilters, currentPage);
             }
           },
           'Unable to load Library games',
@@ -190,9 +204,19 @@ export function createGamesList(options: GamesListOptions): GamesListController 
 
   const updateFilters: (filters: LibraryFilters) => void = (filters: LibraryFilters): void => {
     currentFilters = filters;
-    void loadGames(filters);
+    currentPage = FIRST_PAGE;
+    void loadGames(filters, currentPage);
+  };
+
+  const updatePage: (page: number) => void = (page: number): void => {
+    if (currentFilters === undefined || page === currentPage || page < FIRST_PAGE) {
+      return;
+    }
+
+    currentPage = page;
+    void loadGames(currentFilters, currentPage);
   };
 
   content.replaceChildren(createCardGridSkeleton(PAGE_SIZE, 'Loading Library games'));
-  return { element: section, updateFilters };
+  return { element: section, updateFilters, updatePage };
 }
