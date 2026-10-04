@@ -20,6 +20,12 @@ export function createCardSkeleton(count: number, label: string): HTMLElement {
   return container;
 }
 
+export function createCardGridSkeleton(count: number, label: string): HTMLElement {
+  const container: HTMLElement = createCardSkeleton(count, label);
+  container.classList.add('data-state--card-grid-skeleton');
+  return container;
+}
+
 export function createTableSkeleton(
   rowCount: number,
   columnCount: number,

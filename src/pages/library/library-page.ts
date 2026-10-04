@@ -8,6 +8,10 @@ export function createLibraryPage(options: LibraryPageOptions): HTMLElement {
   const page: HTMLElement = document.createElement('main');
   page.className = 'library-page';
   page.setAttribute('aria-labelledby', 'library-page-title');
-  page.append(createLibraryToolbar(), createGamesList(options.onGameDetails), createPagination());
+  page.append(
+    createLibraryToolbar(),
+    createGamesList({ onDetails: options.onGameDetails, onNotify: options.onNotify }),
+    createPagination(),
+  );
   return page;
 }
