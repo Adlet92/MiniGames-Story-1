@@ -17,9 +17,11 @@ import { getGameHeroImage } from './game-details-images';
 
 export interface GameDetailsDialogOptions {
   onNotify: Snackbar['show'];
+  onRequestClose: () => void;
 }
 
 export interface GameDetailsDialog {
+  close: () => void;
   element: HTMLDialogElement;
   open: (gameSlug: string, userEmail?: string) => void;
 }
@@ -438,11 +440,29 @@ export function createGameDetailsDialog(options: GameDetailsDialogOptions): Game
   }
 
   function open(gameSlug: string, userEmail?: string): void {
-    if (element.open || gameSlug.trim().length === 0) {
+    if (gameSlug.trim().length === 0) {
       return;
     }
 
     const normalizedSlug: string = gameSlug.trim();
+
+    if (element.open) {
+      if (isClosing) {
+        clearTimeout(closeTimer);
+        isClosing = false;
+        element.classList.add('game-details-dialog--open');
+      }
+
+      const version: number = ++requestVersion;
+      hasDetailsFailed = false;
+      hasCommentsFailed = false;
+      renderLoading();
+      element.scrollTop = 0;
+      void loadDetails(normalizedSlug, userEmail, version);
+      void loadComments(normalizedSlug, version);
+      return;
+    }
+
     const version: number = ++requestVersion;
     hasDetailsFailed = false;
     hasCommentsFailed = false;
@@ -462,10 +482,10 @@ export function createGameDetailsDialog(options: GameDetailsDialogOptions): Game
     void loadComments(normalizedSlug, version);
   }
 
-  close.addEventListener('click', closeDialog);
+  close.addEventListener('click', options.onRequestClose);
   element.addEventListener('cancel', (event: Event): void => {
     event.preventDefault();
-    closeDialog();
+    options.onRequestClose();
   });
   element.addEventListener('click', (event: MouseEvent): void => {
     const bounds: DOMRect = element.getBoundingClientRect();
@@ -476,7 +496,7 @@ export function createGameDetailsDialog(options: GameDetailsDialogOptions): Game
       event.clientY > bounds.bottom;
 
     if (isBackdropClick) {
-      closeDialog();
+      options.onRequestClose();
     }
   });
   element.addEventListener('transitionend', (event: TransitionEvent): void => {
@@ -485,5 +505,5 @@ export function createGameDetailsDialog(options: GameDetailsDialogOptions): Game
     }
   });
 
-  return { element, open };
+  return { close: closeDialog, element, open };
 }
