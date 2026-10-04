@@ -27,7 +27,7 @@ const NAVIGATION_ITEMS: NavigationItem[] = [
 ];
 
 function getPageHref(page: AppPage): string {
-  return page === 'home' ? '#/' : '#/library';
+  return page === 'home' ? '/' : '/library';
 }
 
 export function setHeaderActivePage(header: HTMLElement, page: AppPage): void {
@@ -57,7 +57,7 @@ export function createHeader(options: HeaderOptions): HTMLElement {
 
   const brand: HTMLAnchorElement = document.createElement('a');
   brand.className = 'header__brand';
-  brand.href = '#/';
+  brand.href = '/';
   brand.setAttribute('aria-label', 'MiniGames home');
   brand.addEventListener('click', (event: MouseEvent): void => {
     event.preventDefault();

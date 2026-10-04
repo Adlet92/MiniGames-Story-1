@@ -1,6 +1,9 @@
 import './hero-section.scss';
 
-export function createHeroSection(backgroundImageUrl: string): HTMLElement {
+export function createHeroSection(
+  backgroundImageUrl: string,
+  onBrowseLibrary: () => void,
+): HTMLElement {
   const section: HTMLElement = document.createElement('section');
   section.className = 'hero';
   section.setAttribute('aria-labelledby', 'hero-title');
@@ -31,8 +34,12 @@ export function createHeroSection(backgroundImageUrl: string): HTMLElement {
 
   const browseLink: HTMLAnchorElement = document.createElement('a');
   browseLink.className = 'hero__button';
-  browseLink.href = '#/library';
+  browseLink.href = '/library';
   browseLink.textContent = 'Browse Library';
+  browseLink.addEventListener('click', (event: MouseEvent): void => {
+    event.preventDefault();
+    onBrowseLibrary();
+  });
 
   card.append(title, description, mobileDescription, browseLink);
   section.append(background, card);
