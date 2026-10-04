@@ -1,4 +1,4 @@
-import './data-state.scss';
+import '../../../shared/styles/data-state.scss';
 
 export function createCardSkeleton(count: number, label: string): HTMLElement {
   const container: HTMLDivElement = document.createElement('div');
@@ -23,6 +23,26 @@ export function createCardSkeleton(count: number, label: string): HTMLElement {
 export function createCardGridSkeleton(count: number, label: string): HTMLElement {
   const container: HTMLElement = createCardSkeleton(count, label);
   container.classList.add('data-state--card-grid-skeleton');
+  return container;
+}
+
+export function createChipSkeleton(count: number, label: string): HTMLElement {
+  const container: HTMLDivElement = document.createElement('div');
+  container.className = 'data-state data-state--chip-skeleton';
+  container.setAttribute('role', 'status');
+  container.setAttribute('aria-label', label);
+
+  for (let index: number = 0; index < count; index += 1) {
+    const chip: HTMLSpanElement = document.createElement('span');
+    chip.className = 'data-state__skeleton-chip';
+    chip.setAttribute('aria-hidden', 'true');
+    container.append(chip);
+  }
+
+  const text: HTMLSpanElement = document.createElement('span');
+  text.className = 'data-state__visually-hidden';
+  text.textContent = label;
+  container.append(text);
   return container;
 }
 
