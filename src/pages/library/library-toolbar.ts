@@ -7,6 +7,7 @@ import type { Snackbar } from '../../components/ui/snackbar/snackbar';
 import type { CategoriesResponse, Category } from '../../services/categories-api';
 import { fetchCategories } from '../../services/categories-api';
 import type { CategorySlug, GameSort } from '../../services/games-api';
+import { DEFAULT_GAME_SORT } from '../../services/games-api';
 import './library-toolbar.scss';
 import type { LibraryFilters } from './library-types';
 
@@ -21,12 +22,11 @@ export interface LibraryToolbarOptions {
 }
 
 const CATEGORY_SKELETON_COUNT: number = 7;
-const DEFAULT_SORT: GameSort = 'rating-desc';
 const SORT_OPTIONS: SortOption[] = [
   { label: 'Rating ↓', value: 'rating-desc' },
   { label: 'Rating ↑', value: 'rating-asc' },
-  { label: 'Most Liked', value: 'likes-desc' },
   { label: 'Name A–Z', value: 'name-asc' },
+  { label: 'Name Z–A', value: 'name-desc' },
 ];
 
 function getLoadErrorMessage(error: unknown): string {
@@ -54,7 +54,7 @@ export function createLibraryToolbar(options: LibraryToolbarOptions): HTMLElemen
 
   let activeChip: HTMLButtonElement | undefined;
   let selectedCategory: CategorySlug | undefined;
-  let selectedSort: GameSort = DEFAULT_SORT;
+  let selectedSort: GameSort = DEFAULT_GAME_SORT;
   let requestVersion: number = 0;
   let hasFailedRequest: boolean = false;
 
