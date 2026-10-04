@@ -1,5 +1,8 @@
 import { getJson } from './api';
 
+export type CategorySlug = 'all' | 'puzzle' | 'card' | 'match' | 'farm' | 'strategy' | 'arcade';
+export type GameSort = 'rating-desc' | 'rating-asc' | 'likes-desc' | 'name-asc';
+
 export interface PublicGame {
   cardImage: string;
   category: string;
@@ -16,10 +19,10 @@ interface GamesDataResponse {
 }
 
 export interface GamesQuery {
-  category?: string;
+  category?: CategorySlug;
   limit: number;
   page?: number;
-  sort?: string;
+  sort?: GameSort;
 }
 
 export interface GamesListResponse extends GamesDataResponse {
