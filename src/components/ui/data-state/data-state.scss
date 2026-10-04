@@ -1,4 +1,4 @@
-@use '../../../shared/styles/tokens.scss' as t;
+@use '../../../shared/styles/tokens' as t;
 
 .data-state {
   width: 100%;
@@ -23,6 +23,19 @@
     );
     background-size: 220% 100%;
     animation: data-state-shimmer 1.3s linear infinite;
+  }
+
+  &--card-grid-skeleton {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    min-height: auto;
+    gap: t.$library-grid-gap;
+
+    .data-state__skeleton-card {
+      min-height: t.$library-skeleton-card-height;
+      border: t.$library-card-border solid t.$color-ink;
+      border-radius: t.$library-card-radius-desktop;
+      box-shadow: 0 t.$library-card-shadow t.$library-card-shadow t.$color-library-shadow;
+    }
   }
 
   &--table-skeleton {
@@ -153,6 +166,18 @@
     }
   }
 
+  @media (max-width: t.$library-grid-breakpoint) {
+    &--card-grid-skeleton {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: t.$size-2;
+
+      .data-state__skeleton-card {
+        display: block;
+        border-radius: t.$library-card-radius-small;
+      }
+    }
+  }
+
   @media (max-width: t.$breakpoint-tablet) {
     &--table-skeleton {
       box-shadow: t.$leaderboard-shadow-small t.$leaderboard-shadow-small 0 t.$color-ink;
@@ -186,6 +211,10 @@
       .data-state__skeleton-cell:last-child {
         display: none;
       }
+    }
+
+    &--card-grid-skeleton {
+      grid-template-columns: 1fr;
     }
   }
 }
