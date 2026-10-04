@@ -14,8 +14,8 @@ import type { AppPage, AppRouter } from './router';
 import { createRouter } from './router';
 
 const authDialog: AuthDialog = createAuthDialog();
-const gameDetailsDialog: GameDetailsDialog = createGameDetailsDialog();
 const snackbar: Snackbar = createSnackbar();
+const gameDetailsDialog: GameDetailsDialog = createGameDetailsDialog({ onNotify: snackbar.show });
 const app: HTMLDivElement = document.createElement('div');
 app.id = 'app';
 const outlet: HTMLDivElement = document.createElement('div');
