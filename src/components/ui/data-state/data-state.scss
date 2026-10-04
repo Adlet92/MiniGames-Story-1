@@ -25,6 +25,53 @@
     animation: data-state-shimmer 1.3s linear infinite;
   }
 
+  &--table-skeleton {
+    display: grid;
+    min-height: auto;
+    border: t.$leaderboard-border solid t.$color-ink;
+    border-radius: t.$leaderboard-radius;
+    overflow: hidden;
+    background: t.$color-white;
+    box-shadow: t.$leaderboard-shadow-desktop t.$leaderboard-shadow-desktop 0 t.$color-ink;
+  }
+
+  &__skeleton-row {
+    display: grid;
+    grid-template-columns:
+      t.$leaderboard-rank-desktop minmax(0, 1fr) repeat(3, minmax(t.$size-10, 0.7fr))
+      minmax(t.$size-10, 1fr);
+    gap: t.$size-1;
+    min-height: t.$leaderboard-skeleton-row-height;
+    padding: t.$size-2 t.$size-1;
+    border-bottom: t.$leaderboard-divider solid t.$color-outline;
+    background: t.$color-white;
+
+    &[data-header='true'] {
+      min-height: t.$leaderboard-skeleton-header-height;
+      background: t.$color-tertiary;
+    }
+
+    &:last-of-type {
+      border-bottom: 0;
+    }
+  }
+
+  &__skeleton-cell {
+    align-self: center;
+    width: 72%;
+    height: t.$size-2;
+    margin-inline: auto;
+    border-radius: t.$radius-small;
+    background: linear-gradient(
+      100deg,
+      t.$color-outline 20%,
+      t.$color-white 40%,
+      t.$color-outline 60%
+    );
+    background-size: 220% 100%;
+    animation: data-state-shimmer 1.3s linear infinite;
+  }
+
   &--error,
   &--empty {
     display: grid;
@@ -106,12 +153,39 @@
     }
   }
 
+  @media (max-width: t.$breakpoint-tablet) {
+    &--table-skeleton {
+      box-shadow: t.$leaderboard-shadow-small t.$leaderboard-shadow-small 0 t.$color-ink;
+    }
+
+    &__skeleton-row {
+      grid-template-columns:
+        t.$leaderboard-rank-desktop minmax(0, 1fr)
+        repeat(3, t.$leaderboard-games-tablet);
+
+      .data-state__skeleton-cell:last-child {
+        display: none;
+      }
+    }
+  }
+
   @media (max-width: t.$breakpoint-mobile) {
     min-height: t.$carousel-track-height-mobile;
 
     &--error,
     &--empty {
       padding: t.$size-2;
+    }
+
+    &__skeleton-row {
+      grid-template-columns:
+        t.$leaderboard-rank-mobile minmax(0, 1fr) t.$leaderboard-score-mobile
+        t.$leaderboard-streak-mobile;
+
+      .data-state__skeleton-cell:nth-child(3),
+      .data-state__skeleton-cell:last-child {
+        display: none;
+      }
     }
   }
 }
@@ -123,7 +197,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .data-state__skeleton-card {
+  .data-state__skeleton-card,
+  .data-state__skeleton-cell {
     animation: none;
   }
 }
