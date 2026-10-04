@@ -1,0 +1,82 @@
+@use '../../../shared/styles/tokens' as t;
+
+.snackbar-region {
+  position: fixed;
+  z-index: t.$snackbar-layer;
+  right: t.$size-3;
+  bottom: t.$size-3;
+  width: min(t.$snackbar-width, calc(100vw - #{t.$size-4}));
+  pointer-events: none;
+}
+
+.snackbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: t.$size-2;
+  padding: t.$size-2;
+  border: t.$border-width solid t.$color-ink;
+  border-radius: t.$radius-small;
+  opacity: 0;
+  color: t.$color-white;
+  box-shadow: t.$snackbar-shadow;
+  pointer-events: auto;
+  transform: translateY(t.$size-2);
+  transition:
+    opacity t.$snackbar-transition,
+    transform t.$snackbar-transition;
+
+  &--visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  &--success {
+    background: t.$color-success;
+  }
+
+  &--error {
+    background: t.$color-error;
+  }
+
+  &--warning {
+    background: t.$color-warning;
+    color: t.$color-ink;
+  }
+
+  &--info {
+    background: t.$color-tertiary;
+  }
+
+  &__message {
+    margin: 0;
+    line-height: 1.4;
+  }
+
+  &__close {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: t.$size-4;
+    height: t.$size-4;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: currentcolor;
+    font-size: t.$size-3;
+    cursor: pointer;
+  }
+}
+
+@media (max-width: t.$breakpoint-mobile) {
+  .snackbar-region {
+    right: t.$size-2;
+    bottom: t.$size-2;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .snackbar {
+    transition-duration: 1ms;
+  }
+}
