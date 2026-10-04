@@ -1,15 +1,15 @@
+import {
+  createCardSkeleton,
+  createEmptyState,
+  createErrorBanner,
+} from '../../components/ui/data-state/data-state';
+import type { SnackbarVariant } from '../../components/ui/snackbar/snackbar';
+import { getGameImage } from '../../pages/library/game-images';
+import type { PublicGame } from '../../services/games-api';
+import { fetchFeaturedGames } from '../../services/games-api';
 import './slider.scss';
 
 export interface SliderAssets {
-  vacationCafeImage: string;
-  winterBurrowImage: string;
-  shelvePotionsImage: string;
-  heartopiaImage: string;
-  paliaImage: string;
-  catMailImage: string;
-  tinyGladeImage: string;
-  tailsideImage: string;
-  islandersImage: string;
   previousIcon: string;
   nextIcon: string;
   starIcon: string;
@@ -17,10 +17,12 @@ export interface SliderAssets {
 }
 
 export interface SliderOptions {
-  onGameDetails: () => void;
+  onGameDetails: (slug: string) => void;
+  onNotify: (message: string, variant: SnackbarVariant) => void;
 }
 
 interface GameCardData {
+  slug: string;
   title: string;
   imageUrl: string;
   rating: string;
@@ -254,41 +256,26 @@ function applyGeometry(card: HTMLButtonElement, geometry: CardGeometry): void {
   card.setAttribute('aria-hidden', String(geometry.opacity === 0));
 }
 
-function getFeaturedGames(assets: SliderAssets): GameCardData[] {
-  return [
-    {
-      title: 'Vacation Cafe Simulator',
-      imageUrl: assets.vacationCafeImage,
-      rating: '4.8',
-      likes: '28.8K',
-    },
-    { title: 'Winter Burrow', imageUrl: assets.winterBurrowImage, rating: '4.9', likes: '32.4K' },
-    {
-      title: 'Shelve the Potions!',
-      imageUrl: assets.shelvePotionsImage,
-      rating: '4.7',
-      likes: '21.3K',
-    },
-    { title: 'Heartopia', imageUrl: assets.heartopiaImage, rating: '4.6', likes: '46.8K' },
-    { title: 'Palia', imageUrl: assets.paliaImage, rating: '4.8', likes: '89.5K' },
-    { title: 'Cat Mail Co.', imageUrl: assets.catMailImage, rating: '4.9', likes: '38.2K' },
-    { title: 'Tiny Glade', imageUrl: assets.tinyGladeImage, rating: '4.9', likes: '67.3K' },
-    {
-      title: 'Tailside: Cozy Cafe Sim',
-      imageUrl: assets.tailsideImage,
-      rating: '4.8',
-      likes: '35.6K',
-    },
-    {
-      title: 'ISLANDERS: New Shores',
-      imageUrl: assets.islandersImage,
-      rating: '4.9',
-      likes: '54.2K',
-    },
-  ];
+const likesFormatter: Intl.NumberFormat = new Intl.NumberFormat('en', {
+  notation: 'compact',
+  maximumFractionDigits: 1,
+});
+
+function toCardData(game: PublicGame): GameCardData {
+  return {
+    slug: game.slug,
+    title: game.name,
+    imageUrl: getGameImage(game.slug, game.cardImage),
+    rating: game.rating.toFixed(1),
+    likes: likesFormatter.format(game.likesCount),
+  };
 }
 
-export function createSliderSection(assets: SliderAssets, options: SliderOptions): HTMLElement {
+function createLoadedSliderSection(
+  assets: SliderAssets,
+  options: SliderOptions,
+  games: PublicGame[],
+): HTMLElement {
   const section: HTMLElement = document.createElement('section');
   section.className = 'slider';
   section.setAttribute('aria-labelledby', 'new-games-title');
@@ -319,14 +306,14 @@ export function createSliderSection(assets: SliderAssets, options: SliderOptions
   track.setAttribute('aria-label', 'Featured games');
 
   let isClickSuppressed: boolean = false;
-  const cards: HTMLButtonElement[] = getFeaturedGames(assets).map(
-    (game: GameCardData): HTMLButtonElement =>
-      createCard(game, assets, (): void => {
-        if (!isClickSuppressed) {
-          options.onGameDetails();
-        }
-      }),
-  );
+  const cards: HTMLButtonElement[] = games.map((game: PublicGame): HTMLButtonElement => {
+    const cardData: GameCardData = toCardData(game);
+    return createCard(cardData, assets, (): void => {
+      if (!isClickSuppressed) {
+        options.onGameDetails(cardData.slug);
+      }
+    });
+  });
   track.append(...cards);
 
   const status: HTMLParagraphElement = document.createElement('p');
@@ -480,6 +467,92 @@ export function createSliderSection(assets: SliderAssets, options: SliderOptions
   requestAnimationFrame((): void => {
     render();
     scheduleAutoplay();
+  });
+  return section;
+}
+
+function createAsyncHeader(assets: SliderAssets): HTMLDivElement {
+  const header: HTMLDivElement = document.createElement('div');
+  header.className = 'slider__header';
+  const headingGroup: HTMLDivElement = document.createElement('div');
+  headingGroup.className = 'slider__heading-group';
+  const accent: HTMLSpanElement = document.createElement('span');
+  accent.className = 'slider__accent';
+  accent.setAttribute('aria-hidden', 'true');
+  const heading: HTMLHeadingElement = document.createElement('h2');
+  heading.id = 'new-games-title';
+  heading.className = 'slider__heading';
+  heading.textContent = 'New Games';
+  headingGroup.append(accent, heading);
+
+  const arrows: HTMLDivElement = document.createElement('div');
+  arrows.className = 'slider__arrows';
+  const previousButton: HTMLButtonElement = createArrow(assets.previousIcon, 'previous');
+  const nextButton: HTMLButtonElement = createArrow(assets.nextIcon, 'next');
+  previousButton.disabled = true;
+  nextButton.disabled = true;
+  arrows.append(previousButton, nextButton);
+  header.append(headingGroup, arrows);
+  return header;
+}
+
+function getLoadErrorMessage(error: unknown): string {
+  return error instanceof Error
+    ? 'The featured games request failed. Check your connection and try again.'
+    : 'An unexpected error occurred while loading featured games.';
+}
+
+export function createSliderSection(assets: SliderAssets, options: SliderOptions): HTMLElement {
+  const section: HTMLElement = document.createElement('section');
+  section.className = 'slider';
+  section.setAttribute('aria-labelledby', 'new-games-title');
+  const content: HTMLDivElement = document.createElement('div');
+  content.className = 'slider__content';
+  section.append(createAsyncHeader(assets), content);
+
+  let requestVersion: number = 0;
+  let hasFailedRequest: boolean = false;
+
+  const loadFeaturedGames: () => Promise<void> = async (): Promise<void> => {
+    const currentRequest: number = ++requestVersion;
+    content.replaceChildren(createCardSkeleton(5, 'Loading featured games'));
+
+    try {
+      const games: PublicGame[] = await fetchFeaturedGames();
+
+      if (currentRequest !== requestVersion || !section.isConnected) {
+        return;
+      }
+
+      if (games.length === 0) {
+        content.replaceChildren(
+          createEmptyState('No featured games', 'There are no featured games to show right now.'),
+        );
+        return;
+      }
+
+      section.replaceWith(createLoadedSliderSection(assets, options, games));
+
+      if (hasFailedRequest) {
+        options.onNotify('Featured games loaded successfully.', 'success');
+      }
+    } catch (error: unknown) {
+      if (currentRequest !== requestVersion || !section.isConnected) {
+        return;
+      }
+
+      hasFailedRequest = true;
+      content.replaceChildren(
+        createErrorBanner(getLoadErrorMessage(error), (): void => {
+          void loadFeaturedGames();
+        }),
+      );
+      options.onNotify('Featured games could not be loaded.', 'error');
+    }
+  };
+
+  requestAnimationFrame((): void => {
+    void loadFeaturedGames();
   });
   return section;
 }

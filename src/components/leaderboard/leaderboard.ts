@@ -1,22 +1,19 @@
-import leaderboardJson from '../../data/leaderboard.json';
+import type { LeaderboardEntry, LeaderboardResponse } from '../../services/leaderboard-api';
+import { fetchLeaderboard } from '../../services/leaderboard-api';
+import {
+  createEmptyState,
+  createErrorBanner,
+  createTableSkeleton,
+} from '../ui/data-state/data-state';
+import type { SnackbarVariant } from '../ui/snackbar/snackbar';
 import './leaderboard.scss';
 
-export interface LeaderboardEntry {
-  rank: number;
-  playerName: string;
-  gamesPlayed: number;
-  totalScore: number;
-  streakDays: number;
-  favoriteGameSlug: string;
-  favoriteGameName: string;
+export interface LeaderboardOptions {
+  onNotify: (message: string, variant: SnackbarVariant) => void;
 }
 
-interface LeaderboardData {
-  data: LeaderboardEntry[];
-  meta: { totalItems: number; description: string };
-}
-
-const leaderboard: LeaderboardData = leaderboardJson;
+const TABLE_COLUMN_COUNT: number = 6;
+const SKELETON_ROW_COUNT: number = 5;
 const numberFormatter: Intl.NumberFormat = new Intl.NumberFormat('en-US');
 
 function createCell(tagName: 'td' | 'th', className: string): HTMLTableCellElement {
@@ -50,6 +47,7 @@ function createHeader(): HTMLTableSectionElement {
     cell.scope = 'col';
     const label: HTMLSpanElement = document.createElement('span');
     label.textContent = heading.label;
+
     if (heading.shortLabel) {
       label.className = 'leaderboard__long-label';
       const shortLabel: HTMLSpanElement = document.createElement('span');
@@ -59,8 +57,10 @@ function createHeader(): HTMLTableSectionElement {
     } else {
       cell.append(label);
     }
+
     row.append(cell);
   }
+
   tableHead.append(row);
   return tableHead;
 }
@@ -84,14 +84,12 @@ function createPlayerCell(entry: LeaderboardEntry): HTMLTableCellElement {
 
 function createRow(entry: LeaderboardEntry): HTMLTableRowElement {
   const row: HTMLTableRowElement = document.createElement('tr');
-
   const rank: HTMLTableCellElement = createCell('th', 'leaderboard__rank');
   rank.scope = 'row';
   rank.textContent = `#${entry.rank}`;
 
   const games: HTMLTableCellElement = createCell('td', 'leaderboard__games');
   games.textContent = String(entry.gamesPlayed);
-
   const score: HTMLTableCellElement = createCell('td', 'leaderboard__score');
   const fullScore: HTMLSpanElement = document.createElement('span');
   fullScore.className = 'leaderboard__full-score';
@@ -119,12 +117,31 @@ function createRow(entry: LeaderboardEntry): HTMLTableRowElement {
   badge.textContent = entry.favoriteGameName;
   badge.dataset.gameSlug = entry.favoriteGameSlug;
   favorite.append(badge);
-
   row.append(rank, createPlayerCell(entry), games, score, streak, favorite);
   return row;
 }
 
-export function createLeaderboardSection(): HTMLElement {
+function createTable(response: LeaderboardResponse): HTMLTableElement {
+  const table: HTMLTableElement = document.createElement('table');
+  table.className = 'leaderboard__table';
+  table.setAttribute('aria-label', response.meta.description);
+  const tableBody: HTMLTableSectionElement = document.createElement('tbody');
+
+  for (const entry of response.data) {
+    tableBody.append(createRow(entry));
+  }
+
+  table.append(createHeader(), tableBody);
+  return table;
+}
+
+function getLoadErrorMessage(error: unknown): string {
+  return error instanceof Error
+    ? 'The leaderboard request failed. Check your connection and try again.'
+    : 'An unexpected error occurred while loading the leaderboard.';
+}
+
+export function createLeaderboardSection(options: LeaderboardOptions): HTMLElement {
   const section: HTMLElement = document.createElement('section');
   section.className = 'leaderboard';
   section.setAttribute('aria-labelledby', 'leaderboard-title');
@@ -139,21 +156,69 @@ export function createLeaderboardSection(): HTMLElement {
   heading.className = 'leaderboard__heading';
   const fullHeading: HTMLSpanElement = document.createElement('span');
   fullHeading.className = 'leaderboard__full-heading';
-  fullHeading.textContent = leaderboard.meta.description;
+  fullHeading.textContent = 'Top Players This Week';
   const mobileHeading: HTMLSpanElement = document.createElement('span');
   mobileHeading.className = 'leaderboard__mobile-heading';
   mobileHeading.textContent = 'Top Players';
   heading.append(fullHeading, mobileHeading);
   headingGroup.append(accent, heading);
 
-  const table: HTMLTableElement = document.createElement('table');
-  table.className = 'leaderboard__table';
-  table.setAttribute('aria-label', leaderboard.meta.description);
-  const tableBody: HTMLTableSectionElement = document.createElement('tbody');
-  for (const entry of leaderboard.data) {
-    tableBody.append(createRow(entry));
-  }
-  table.append(createHeader(), tableBody);
-  section.append(headingGroup, table);
+  const content: HTMLDivElement = document.createElement('div');
+  content.className = 'leaderboard__content';
+  section.append(headingGroup, content);
+
+  let requestVersion: number = 0;
+  let hasFailedRequest: boolean = false;
+
+  const loadLeaderboard: () => Promise<void> = async (): Promise<void> => {
+    const currentRequest: number = ++requestVersion;
+    content.replaceChildren(
+      createTableSkeleton(SKELETON_ROW_COUNT, TABLE_COLUMN_COUNT, 'Loading top players'),
+    );
+
+    try {
+      const response: LeaderboardResponse = await fetchLeaderboard();
+
+      if (currentRequest !== requestVersion || !section.isConnected) {
+        return;
+      }
+
+      fullHeading.textContent = response.meta.description;
+
+      if (response.data.length === 0) {
+        content.replaceChildren(
+          createEmptyState('No leaderboard data', 'No player records are available right now.'),
+        );
+        return;
+      }
+
+      content.replaceChildren(createTable(response));
+
+      if (hasFailedRequest) {
+        options.onNotify('Leaderboard loaded successfully.', 'success');
+        hasFailedRequest = false;
+      }
+    } catch (error: unknown) {
+      if (currentRequest !== requestVersion || !section.isConnected) {
+        return;
+      }
+
+      hasFailedRequest = true;
+      content.replaceChildren(
+        createErrorBanner(
+          getLoadErrorMessage(error),
+          (): void => {
+            void loadLeaderboard();
+          },
+          'Unable to load leaderboard',
+        ),
+      );
+      options.onNotify('Leaderboard could not be loaded.', 'error');
+    }
+  };
+
+  requestAnimationFrame((): void => {
+    void loadLeaderboard();
+  });
   return section;
 }
