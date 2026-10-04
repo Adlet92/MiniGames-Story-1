@@ -25,6 +25,30 @@
     animation: data-state-shimmer 1.3s linear infinite;
   }
 
+  &--chip-skeleton {
+    display: flex;
+    flex: none;
+    min-height: auto;
+    gap: t.$size-2;
+    overflow: hidden;
+  }
+
+  &__skeleton-chip {
+    flex: none;
+    width: t.$library-chip-skeleton-width;
+    height: t.$library-chip-skeleton-height;
+    border: t.$border-width solid t.$color-outline-variant;
+    border-radius: t.$library-control-radius;
+    background: linear-gradient(
+      100deg,
+      t.$color-outline 20%,
+      t.$color-white 40%,
+      t.$color-outline 60%
+    );
+    background-size: 220% 100%;
+    animation: data-state-shimmer 1.3s linear infinite;
+  }
+
   &--card-grid-skeleton {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     min-height: auto;
@@ -227,7 +251,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .data-state__skeleton-card,
-  .data-state__skeleton-cell {
+  .data-state__skeleton-cell,
+  .data-state__skeleton-chip {
     animation: none;
   }
 }

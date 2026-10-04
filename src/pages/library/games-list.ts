@@ -10,10 +10,16 @@ import type { GamesListResponse, PublicGame } from '../../services/games-api';
 import { fetchGames } from '../../services/games-api';
 import { getGameImage } from './game-images';
 import './games-list.scss';
+import type { LibraryFilters } from './library-types';
 
 export interface GamesListOptions {
   onDetails: (slug: string) => void;
   onNotify: Snackbar['show'];
+}
+
+export interface GamesListController {
+  element: HTMLElement;
+  updateFilters: (filters: LibraryFilters) => void;
 }
 
 const PAGE_SIZE: number = 6;
@@ -108,7 +114,7 @@ function getLoadErrorMessage(error: unknown): string {
     : 'An unexpected error occurred while loading games.';
 }
 
-export function createGamesList(options: GamesListOptions): HTMLElement {
+export function createGamesList(options: GamesListOptions): GamesListController {
   const section: HTMLElement = document.createElement('section');
   section.className = 'games-list';
   section.setAttribute('aria-label', 'Available games');
@@ -118,13 +124,27 @@ export function createGamesList(options: GamesListOptions): HTMLElement {
 
   let requestVersion: number = 0;
   let hasFailedRequest: boolean = false;
+  let activeRequest: AbortController | undefined;
+  let currentFilters: LibraryFilters | undefined;
 
-  const loadGames: () => Promise<void> = async (): Promise<void> => {
+  const loadGames: (filters: LibraryFilters) => Promise<void> = async (
+    filters: LibraryFilters,
+  ): Promise<void> => {
     const currentRequest: number = ++requestVersion;
+    activeRequest?.abort();
+    activeRequest = new AbortController();
     content.replaceChildren(createCardGridSkeleton(PAGE_SIZE, 'Loading Library games'));
 
     try {
-      const response: GamesListResponse = await fetchGames({ limit: PAGE_SIZE });
+      const response: GamesListResponse = await fetchGames(
+        {
+          category: filters.category,
+          sort: filters.sort,
+          page: 1,
+          limit: PAGE_SIZE,
+        },
+        activeRequest.signal,
+      );
 
       if (currentRequest !== requestVersion || !section.isConnected) {
         return;
@@ -144,7 +164,11 @@ export function createGamesList(options: GamesListOptions): HTMLElement {
         hasFailedRequest = false;
       }
     } catch (error: unknown) {
-      if (currentRequest !== requestVersion || !section.isConnected) {
+      if (
+        currentRequest !== requestVersion ||
+        !section.isConnected ||
+        (error instanceof DOMException && error.name === 'AbortError')
+      ) {
         return;
       }
 
@@ -153,7 +177,9 @@ export function createGamesList(options: GamesListOptions): HTMLElement {
         createErrorBanner(
           getLoadErrorMessage(error),
           (): void => {
-            void loadGames();
+            if (currentFilters !== undefined) {
+              void loadGames(currentFilters);
+            }
           },
           'Unable to load Library games',
         ),
@@ -162,8 +188,11 @@ export function createGamesList(options: GamesListOptions): HTMLElement {
     }
   };
 
-  requestAnimationFrame((): void => {
-    void loadGames();
-  });
-  return section;
+  const updateFilters: (filters: LibraryFilters) => void = (filters: LibraryFilters): void => {
+    currentFilters = filters;
+    void loadGames(filters);
+  };
+
+  content.replaceChildren(createCardGridSkeleton(PAGE_SIZE, 'Loading Library games'));
+  return { element: section, updateFilters };
 }

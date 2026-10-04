@@ -1,19 +1,12 @@
-export interface CategoryData {
-  isDefault: boolean;
-  label: string;
-  slug: string;
-}
+import type { Snackbar } from '../../components/ui/snackbar/snackbar';
+import type { CategorySlug, GameSort } from '../../services/games-api';
 
-export interface CategoriesResponse {
-  data: CategoryData[];
-  meta: {
-    description: string;
-    totalItems: number;
-  };
+export interface LibraryFilters {
+  category: CategorySlug;
+  sort: GameSort;
 }
 
 export interface LibraryPageOptions {
   onGameDetails: (slug: string) => void;
   onNotify: Snackbar['show'];
 }
-import type { Snackbar } from '../../components/ui/snackbar/snackbar';
