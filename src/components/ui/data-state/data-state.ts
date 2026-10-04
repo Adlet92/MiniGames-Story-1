@@ -1,4 +1,4 @@
-import '../../../shared/styles/data-state.scss';
+import './data-state.scss';
 
 export function createCardSkeleton(count: number, label: string): HTMLElement {
   const container: HTMLDivElement = document.createElement('div');

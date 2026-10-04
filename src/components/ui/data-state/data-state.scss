@@ -1,5 +1,6 @@
 @use '../../../shared/styles/tokens' as t;
 
+
 .data-state {
   width: 100%;
   min-height: t.$carousel-track-height-desktop;
@@ -15,6 +16,30 @@
     min-width: 0;
     height: 100%;
     border-radius: t.$carousel-card-radius-desktop;
+    background: linear-gradient(
+      100deg,
+      t.$color-outline 20%,
+      t.$color-white 40%,
+      t.$color-outline 60%
+    );
+    background-size: 220% 100%;
+    animation: data-state-shimmer 1.3s linear infinite;
+  }
+
+  &--chip-skeleton {
+    display: flex;
+    flex: none;
+    min-height: auto;
+    gap: t.$size-2;
+    overflow: hidden;
+  }
+
+  &__skeleton-chip {
+    flex: none;
+    width: t.$library-chip-skeleton-width;
+    height: t.$library-chip-skeleton-height;
+    border: t.$border-width solid t.$color-outline-variant;
+    border-radius: t.$library-control-radius;
     background: linear-gradient(
       100deg,
       t.$color-outline 20%,
@@ -227,7 +252,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .data-state__skeleton-card,
-  .data-state__skeleton-cell {
+  .data-state__skeleton-cell,
+  .data-state__skeleton-chip {
     animation: none;
   }
 }
