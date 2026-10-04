@@ -6,6 +6,8 @@ import { createFooter } from '../components/footer/footer';
 import type { HeaderOptions } from '../components/header/header';
 import { createHeader, setHeaderActivePage } from '../components/header/header';
 import { createHomePage } from '../components/home/home-page';
+import type { Snackbar } from '../components/ui/snackbar/snackbar';
+import { createSnackbar } from '../components/ui/snackbar/snackbar';
 import { createLibraryPage } from '../pages/library/library-page';
 import '../shared/styles/globals.scss';
 import type { AppPage, AppRouter } from './router';
@@ -13,6 +15,7 @@ import { createRouter } from './router';
 
 const authDialog: AuthDialog = createAuthDialog();
 const gameDetailsDialog: GameDetailsDialog = createGameDetailsDialog();
+const snackbar: Snackbar = createSnackbar();
 const app: HTMLDivElement = document.createElement('div');
 app.id = 'app';
 const outlet: HTMLDivElement = document.createElement('div');
@@ -20,11 +23,19 @@ outlet.id = 'page-content';
 
 const router: AppRouter = createRouter(outlet, {
   home: {
-    createPage: (): HTMLElement => createHomePage({ onGameDetails: gameDetailsDialog.open }),
+    createPage: (): HTMLElement =>
+      createHomePage({
+        onGameDetails: gameDetailsDialog.open,
+        onNotify: snackbar.show,
+      }),
     title: 'MiniGames | Home',
   },
   library: {
-    createPage: (): HTMLElement => createLibraryPage({ onGameDetails: gameDetailsDialog.open }),
+    createPage: (): HTMLElement =>
+      createLibraryPage({
+        onGameDetails: gameDetailsDialog.open,
+        onNotify: snackbar.show,
+      }),
     title: 'MiniGames | Library',
   },
 });
@@ -42,6 +53,7 @@ app.append(
   createFooter({ onNavigate: router.navigate }),
   authDialog.element,
   gameDetailsDialog.element,
+  snackbar.element,
 );
 document.body.append(app);
 router.navigate('home');

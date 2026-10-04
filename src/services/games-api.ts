@@ -11,8 +11,24 @@ export interface PublicGame {
   slug: string;
 }
 
-interface FeaturedGamesResponse {
+interface GamesDataResponse {
   data: PublicGame[];
+}
+
+export interface GamesQuery {
+  category?: string;
+  limit: number;
+  page?: number;
+  sort?: string;
+}
+
+export interface GamesListResponse extends GamesDataResponse {
+  meta: {
+    limit: number;
+    page: number;
+    totalItems: number;
+    totalPages: number;
+  };
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -56,7 +72,7 @@ function parseGame(value: unknown): PublicGame {
   };
 }
 
-function parseFeaturedGamesResponse(value: unknown): FeaturedGamesResponse {
+function parseGamesDataResponse(value: unknown): GamesDataResponse {
   if (!isRecord(value) || !Array.isArray(value.data)) {
     throw new TypeError('Invalid games response: data must be an array.');
   }
@@ -64,7 +80,49 @@ function parseFeaturedGamesResponse(value: unknown): FeaturedGamesResponse {
   return { data: value.data.map((game: unknown): PublicGame => parseGame(game)) };
 }
 
+function parseGamesListResponse(value: unknown): GamesListResponse {
+  const parsed: GamesDataResponse = parseGamesDataResponse(value);
+
+  if (!isRecord(value) || !isRecord(value.meta)) {
+    throw new TypeError('Invalid games response: meta must be an object.');
+  }
+
+  return {
+    data: parsed.data,
+    meta: {
+      page: readNumber(value.meta, 'page'),
+      limit: readNumber(value.meta, 'limit'),
+      totalItems: readNumber(value.meta, 'totalItems'),
+      totalPages: readNumber(value.meta, 'totalPages'),
+    },
+  };
+}
+
+function addOptionalParameter(
+  parameters: URLSearchParams,
+  key: string,
+  value?: string | number,
+): void {
+  if (value === undefined) {
+    return;
+  }
+
+  parameters.set(key, String(value));
+}
+
 export async function fetchFeaturedGames(signal?: AbortSignal): Promise<PublicGame[]> {
   const response: unknown = await getJson('games?featured=true', signal);
-  return parseFeaturedGamesResponse(response).data;
+  return parseGamesDataResponse(response).data;
+}
+
+export async function fetchGames(
+  query: GamesQuery,
+  signal?: AbortSignal,
+): Promise<GamesListResponse> {
+  const parameters: URLSearchParams = new URLSearchParams({ limit: String(query.limit) });
+  addOptionalParameter(parameters, 'page', query.page);
+  addOptionalParameter(parameters, 'category', query.category);
+  addOptionalParameter(parameters, 'sort', query.sort);
+  const response: unknown = await getJson(`games?${parameters.toString()}`, signal);
+  return parseGamesListResponse(response);
 }

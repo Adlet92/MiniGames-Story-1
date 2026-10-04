@@ -1,24 +1,3 @@
-export interface GameData {
-  cardImage: string;
-  category: string;
-  featured: boolean;
-  likesCount: number;
-  name: string;
-  price: string;
-  rating: number;
-  shortDescription: string;
-  slug: string;
-}
-
-export interface GamesResponse {
-  data: GameData[];
-  meta: {
-    description: string;
-    featuredCount: number;
-    totalItems: number;
-  };
-}
-
 export interface CategoryData {
   isDefault: boolean;
   label: string;
@@ -34,5 +13,7 @@ export interface CategoriesResponse {
 }
 
 export interface LibraryPageOptions {
-  onGameDetails: () => void;
+  onGameDetails: (slug: string) => void;
+  onNotify: Snackbar['show'];
 }
+import type { Snackbar } from '../../components/ui/snackbar/snackbar';

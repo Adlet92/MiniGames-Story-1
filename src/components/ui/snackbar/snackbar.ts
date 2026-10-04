@@ -1,4 +1,4 @@
-import './snackbar.scss';
+// import './snackbar.scss';
 
 export type SnackbarVariant = 'success' | 'error' | 'warning' | 'info';
 
