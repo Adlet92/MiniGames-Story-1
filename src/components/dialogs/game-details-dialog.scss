@@ -48,6 +48,23 @@
     }
   }
 
+  &__hero-media,
+  &__hero-skeleton {
+    width: 100%;
+    height: 100%;
+  }
+
+  &__hero-skeleton {
+    background: linear-gradient(
+      100deg,
+      t.$color-outline 20%,
+      t.$color-white 40%,
+      t.$color-outline 60%
+    );
+    background-size: 220% 100%;
+    animation: data-state-shimmer 1.3s linear infinite;
+  }
+
   &__close {
     position: absolute;
     top: t.$size-2;
@@ -83,6 +100,31 @@
     display: grid;
     gap: t.$game-dialog-section-gap;
     padding: t.$size-4;
+  }
+
+  &__details-region,
+  &__comments-region {
+    display: grid;
+    gap: t.$game-dialog-section-gap;
+  }
+
+  .data-state--game-dialog-skeleton {
+    grid-template-columns: 1fr;
+    min-height: calc(t.$game-dialog-record-height * 3);
+    gap: t.$size-2;
+
+    .data-state__skeleton-card {
+      display: block;
+      min-height: calc(t.$game-dialog-record-height * 1.5);
+      border-radius: t.$game-dialog-inner-radius;
+    }
+  }
+
+  &__details-region > .data-state,
+  &__comments-region > .data-state,
+  &__records > .data-state,
+  &__comments > .data-state {
+    min-height: calc(t.$game-dialog-record-height * 3);
   }
 
   &__information {
@@ -434,7 +476,9 @@
 
 @media (prefers-reduced-motion: reduce) {
   .game-details-dialog,
-  .game-details-dialog::backdrop {
+  .game-details-dialog::backdrop,
+  .game-details-dialog__hero-skeleton {
     transition-duration: 1ms;
+    animation: none;
   }
 }

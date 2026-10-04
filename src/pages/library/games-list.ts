@@ -1,12 +1,30 @@
 import heartIconUrl from '../../assets/icons/heart_icon.svg';
 import starIconUrl from '../../assets/icons/star_icon.svg';
-import gamesJson from '../../data/games.json';
+import {
+  createCardGridSkeleton,
+  createEmptyState,
+  createErrorBanner,
+} from '../../components/ui/data-state/data-state';
+import type { Snackbar } from '../../components/ui/snackbar/snackbar';
+import type { GamesListResponse, PublicGame } from '../../services/games-api';
+import { fetchGames } from '../../services/games-api';
 import { getGameImage } from './game-images';
-import type { GameData, GamesResponse } from './library-types';
 import './games-list.scss';
+import type { LibraryFilters, LibraryPagination, LibraryViewState } from './library-types';
 
-const GAMES: GamesResponse = gamesJson;
-const VISIBLE_CARD_COUNT: number = 12;
+export interface GamesListOptions {
+  onDetails: (slug: string) => void;
+  onNotify: Snackbar['show'];
+  onPaginationChange: (pagination: LibraryPagination) => void;
+}
+
+export interface GamesListController {
+  element: HTMLElement;
+  updateState: (state: LibraryViewState) => void;
+}
+
+const PAGE_SIZE: number = 6;
+const FIRST_PAGE: number = 1;
 const likesFormatter: Intl.NumberFormat = new Intl.NumberFormat('en', {
   notation: 'compact',
   maximumFractionDigits: 1,
@@ -27,7 +45,7 @@ function createMetric(iconUrl: string, value: string, label: string): HTMLSpanEl
   return metric;
 }
 
-function createGameCard(game: GameData, onDetails: () => void): HTMLLIElement {
+function createGameCard(game: PublicGame, onDetails: (slug: string) => void): HTMLLIElement {
   const item: HTMLLIElement = document.createElement('li');
   item.className = 'games-list__item';
   const card: HTMLElement = document.createElement('article');
@@ -76,7 +94,7 @@ function createGameCard(game: GameData, onDetails: () => void): HTMLLIElement {
   details.className = 'game-card__details';
   details.textContent = 'Details';
   details.setAttribute('aria-label', `View details for ${game.name}`);
-  details.addEventListener('click', onDetails);
+  details.addEventListener('click', (): void => onDetails(game.slug));
   footer.append(metrics, details);
 
   content.append(heading, badges, description, footer);
@@ -85,16 +103,119 @@ function createGameCard(game: GameData, onDetails: () => void): HTMLLIElement {
   return item;
 }
 
-export function createGamesList(onDetails: () => void): HTMLElement {
+function createGamesGrid(games: PublicGame[], onDetails: (slug: string) => void): HTMLElement {
+  const list: HTMLUListElement = document.createElement('ul');
+  list.className = 'games-list__grid';
+  list.append(...games.map((game: PublicGame): HTMLLIElement => createGameCard(game, onDetails)));
+  return list;
+}
+
+function getLoadErrorMessage(error: unknown): string {
+  return error instanceof Error
+    ? 'The games request failed. Check your connection and try again.'
+    : 'An unexpected error occurred while loading games.';
+}
+
+export function createGamesList(options: GamesListOptions): GamesListController {
   const section: HTMLElement = document.createElement('section');
   section.className = 'games-list';
   section.setAttribute('aria-label', 'Available games');
-  const list: HTMLUListElement = document.createElement('ul');
-  list.className = 'games-list__grid';
-  const visibleGames: GameData[] = GAMES.data.slice(0, VISIBLE_CARD_COUNT);
-  list.append(
-    ...visibleGames.map((game: GameData): HTMLLIElement => createGameCard(game, onDetails)),
-  );
-  section.append(list);
-  return section;
+  const content: HTMLDivElement = document.createElement('div');
+  content.className = 'games-list__content';
+  section.append(content);
+
+  let requestVersion: number = 0;
+  let hasFailedRequest: boolean = false;
+  let activeRequest: AbortController | undefined;
+  let currentFilters: LibraryFilters | undefined;
+  let currentPage: number = FIRST_PAGE;
+
+  const loadGames: (filters: LibraryFilters, page: number) => Promise<void> = async (
+    filters: LibraryFilters,
+    page: number,
+  ): Promise<void> => {
+    const currentRequest: number = ++requestVersion;
+    activeRequest?.abort();
+    activeRequest = new AbortController();
+    content.replaceChildren(createCardGridSkeleton(PAGE_SIZE, 'Loading Library games'));
+
+    try {
+      const response: GamesListResponse = await fetchGames(
+        {
+          category: filters.category,
+          sort: filters.sort,
+          page,
+          limit: PAGE_SIZE,
+        },
+        activeRequest.signal,
+      );
+
+      if (currentRequest !== requestVersion || !section.isConnected) {
+        return;
+      }
+
+      const totalPages: number = Math.max(FIRST_PAGE, Math.trunc(response.meta.totalPages));
+      const responsePage: number = Math.max(FIRST_PAGE, Math.trunc(response.meta.page));
+      const pagination: LibraryPagination = {
+        page: Math.min(responsePage, totalPages),
+        totalPages,
+      };
+      currentPage = pagination.page;
+      options.onPaginationChange(pagination);
+
+      if (hasFailedRequest) {
+        options.onNotify('Library games loaded successfully.', 'success');
+        hasFailedRequest = false;
+      }
+
+      if (response.data.length === 0) {
+        content.replaceChildren(
+          createEmptyState('Data Not Found', 'There are no games for the selected criteria.'),
+        );
+        return;
+      }
+
+      content.replaceChildren(createGamesGrid(response.data, options.onDetails));
+    } catch (error: unknown) {
+      if (
+        currentRequest !== requestVersion ||
+        !section.isConnected ||
+        (error instanceof DOMException && error.name === 'AbortError')
+      ) {
+        return;
+      }
+
+      hasFailedRequest = true;
+      content.replaceChildren(
+        createErrorBanner(
+          getLoadErrorMessage(error),
+          (): void => {
+            if (currentFilters !== undefined) {
+              void loadGames(currentFilters, currentPage);
+            }
+          },
+          'Unable to load Library games',
+        ),
+      );
+      options.onNotify('Library games could not be loaded.', 'error');
+    }
+  };
+
+  const updateState: (state: LibraryViewState) => void = (state: LibraryViewState): void => {
+    const hasSameState: boolean =
+      currentFilters?.category === state.category &&
+      currentFilters.sort === state.sort &&
+      currentPage === state.page;
+
+    if (hasSameState) {
+      return;
+    }
+
+    currentFilters = { category: state.category, sort: state.sort };
+    currentPage = Math.max(FIRST_PAGE, Math.trunc(state.page));
+    void loadGames(currentFilters, currentPage);
+  };
+
+  content.replaceChildren(createCardGridSkeleton(PAGE_SIZE, 'Loading Library games'));
+  return { element: section, updateState };
 }

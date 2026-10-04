@@ -1,38 +1,34 @@
-export interface GameData {
-  cardImage: string;
-  category: string;
-  featured: boolean;
-  likesCount: number;
-  name: string;
-  price: string;
-  rating: number;
-  shortDescription: string;
-  slug: string;
+import type { Snackbar } from '../../components/ui/snackbar/snackbar';
+import type { CategorySlug, GameSort } from '../../services/games-api';
+
+export interface LibraryFilters {
+  category: CategorySlug;
+  sort: GameSort;
 }
 
-export interface GamesResponse {
-  data: GameData[];
-  meta: {
-    description: string;
-    featuredCount: number;
-    totalItems: number;
-  };
+export interface LibraryPagination {
+  page: number;
+  totalPages: number;
 }
 
-export interface CategoryData {
-  isDefault: boolean;
-  label: string;
-  slug: string;
+export interface LibraryViewState extends LibraryFilters {
+  page: number;
 }
 
-export interface CategoriesResponse {
-  data: CategoryData[];
-  meta: {
-    description: string;
-    totalItems: number;
-  };
+export interface LibraryStateUpdate {
+  category?: CategorySlug;
+  page?: number;
+  sort?: GameSort;
 }
 
 export interface LibraryPageOptions {
-  onGameDetails: () => void;
+  initialState: LibraryViewState;
+  onGameDetails: (slug: string) => void;
+  onNotify: Snackbar['show'];
+  onStateChange: (update: LibraryStateUpdate) => void;
+}
+
+export interface LibraryPageController {
+  element: HTMLElement;
+  updateState: (state: LibraryViewState) => void;
 }

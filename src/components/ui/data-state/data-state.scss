@@ -1,0 +1,258 @@
+@use '../../../shared/styles/tokens' as t;
+
+.data-state {
+  width: 100%;
+  min-height: t.$carousel-track-height-desktop;
+
+  &--skeleton {
+    display: grid;
+    grid-template-columns: 0.5fr 1fr 1.5fr 1fr 0.5fr;
+    gap: t.$size-1;
+    overflow: hidden;
+  }
+
+  &__skeleton-card {
+    min-width: 0;
+    height: 100%;
+    border-radius: t.$carousel-card-radius-desktop;
+    background: linear-gradient(
+      100deg,
+      t.$color-outline 20%,
+      t.$color-white 40%,
+      t.$color-outline 60%
+    );
+    background-size: 220% 100%;
+    animation: data-state-shimmer 1.3s linear infinite;
+  }
+
+  &--chip-skeleton {
+    display: flex;
+    flex: none;
+    min-height: auto;
+    gap: t.$size-2;
+    overflow: hidden;
+  }
+
+  &__skeleton-chip {
+    flex: none;
+    width: t.$library-chip-skeleton-width;
+    height: t.$library-chip-skeleton-height;
+    border: t.$border-width solid t.$color-outline-variant;
+    border-radius: t.$library-control-radius;
+    background: linear-gradient(
+      100deg,
+      t.$color-outline 20%,
+      t.$color-white 40%,
+      t.$color-outline 60%
+    );
+    background-size: 220% 100%;
+    animation: data-state-shimmer 1.3s linear infinite;
+  }
+
+  &--card-grid-skeleton {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    min-height: auto;
+    gap: t.$library-grid-gap;
+
+    .data-state__skeleton-card {
+      min-height: t.$library-skeleton-card-height;
+      border: t.$library-card-border solid t.$color-ink;
+      border-radius: t.$library-card-radius-desktop;
+      box-shadow: 0 t.$library-card-shadow t.$library-card-shadow t.$color-library-shadow;
+    }
+  }
+
+  &--table-skeleton {
+    display: grid;
+    min-height: auto;
+    border: t.$leaderboard-border solid t.$color-ink;
+    border-radius: t.$leaderboard-radius;
+    overflow: hidden;
+    background: t.$color-white;
+    box-shadow: t.$leaderboard-shadow-desktop t.$leaderboard-shadow-desktop 0 t.$color-ink;
+  }
+
+  &__skeleton-row {
+    display: grid;
+    grid-template-columns:
+      t.$leaderboard-rank-desktop minmax(0, 1fr) repeat(3, minmax(t.$size-10, 0.7fr))
+      minmax(t.$size-10, 1fr);
+    gap: t.$size-1;
+    min-height: t.$leaderboard-skeleton-row-height;
+    padding: t.$size-2 t.$size-1;
+    border-bottom: t.$leaderboard-divider solid t.$color-outline;
+    background: t.$color-white;
+
+    &[data-header='true'] {
+      min-height: t.$leaderboard-skeleton-header-height;
+      background: t.$color-tertiary;
+    }
+
+    &:last-of-type {
+      border-bottom: 0;
+    }
+  }
+
+  &__skeleton-cell {
+    align-self: center;
+    width: 72%;
+    height: t.$size-2;
+    margin-inline: auto;
+    border-radius: t.$radius-small;
+    background: linear-gradient(
+      100deg,
+      t.$color-outline 20%,
+      t.$color-white 40%,
+      t.$color-outline 60%
+    );
+    background-size: 220% 100%;
+    animation: data-state-shimmer 1.3s linear infinite;
+  }
+
+  &--error,
+  &--empty {
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    gap: t.$size-2;
+    padding: t.$size-4;
+    border: t.$border-width dashed t.$color-outline-variant;
+    border-radius: t.$carousel-card-radius-desktop;
+    text-align: center;
+  }
+
+  &--error {
+    border-color: t.$color-error;
+    background: t.$color-error-surface;
+  }
+
+  &--empty {
+    background: t.$color-white;
+  }
+
+  &__title,
+  &__message {
+    margin: 0;
+  }
+
+  &__title {
+    color: t.$color-ink;
+    font-size: t.$game-dialog-section-title;
+  }
+
+  &__message {
+    max-width: 48ch;
+    color: t.$color-muted;
+    line-height: 1.5;
+  }
+
+  &__retry {
+    padding: t.$button-y t.$button-x;
+    border: t.$border-width solid t.$color-ink;
+    border-radius: t.$radius-small;
+    background: t.$color-primary;
+    color: t.$color-ink;
+    font: inherit;
+    font-weight: t.$weight-bold;
+    cursor: pointer;
+
+    &:hover {
+      background: t.$color-primary-hover;
+    }
+
+    &:focus-visible {
+      outline: t.$border-width solid t.$color-tertiary;
+      outline-offset: t.$size-05;
+    }
+  }
+
+  &__visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  @media (max-width: #{t.$carousel-layout-wide - 1px}) {
+    min-height: t.$carousel-track-height-tablet;
+
+    &--skeleton {
+      grid-template-columns: 0.35fr 1fr 0.35fr;
+    }
+
+    &__skeleton-card:nth-child(n + 4) {
+      display: none;
+    }
+  }
+
+  @media (max-width: t.$library-grid-breakpoint) {
+    &--card-grid-skeleton {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: t.$size-2;
+
+      .data-state__skeleton-card {
+        display: block;
+        border-radius: t.$library-card-radius-small;
+      }
+    }
+  }
+
+  @media (max-width: t.$breakpoint-tablet) {
+    &--table-skeleton {
+      box-shadow: t.$leaderboard-shadow-small t.$leaderboard-shadow-small 0 t.$color-ink;
+    }
+
+    &__skeleton-row {
+      grid-template-columns:
+        t.$leaderboard-rank-desktop minmax(0, 1fr)
+        repeat(3, t.$leaderboard-games-tablet);
+
+      .data-state__skeleton-cell:last-child {
+        display: none;
+      }
+    }
+  }
+
+  @media (max-width: t.$breakpoint-mobile) {
+    min-height: t.$carousel-track-height-mobile;
+
+    &--error,
+    &--empty {
+      padding: t.$size-2;
+    }
+
+    &__skeleton-row {
+      grid-template-columns:
+        t.$leaderboard-rank-mobile minmax(0, 1fr) t.$leaderboard-score-mobile
+        t.$leaderboard-streak-mobile;
+
+      .data-state__skeleton-cell:nth-child(3),
+      .data-state__skeleton-cell:last-child {
+        display: none;
+      }
+    }
+
+    &--card-grid-skeleton {
+      grid-template-columns: 1fr;
+    }
+  }
+}
+
+@keyframes data-state-shimmer {
+  to {
+    background-position-x: -220%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .data-state__skeleton-card,
+  .data-state__skeleton-cell,
+  .data-state__skeleton-chip {
+    animation: none;
+  }
+}

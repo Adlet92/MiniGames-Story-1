@@ -31,6 +31,14 @@
     &::-webkit-scrollbar {
       display: none;
     }
+
+    > .data-state--error,
+    > .data-state--empty {
+      flex: none;
+      width: min(t.$library-category-state-width, 100%);
+      min-height: auto;
+      padding: t.$size-2;
+    }
   }
 
   &__chip,
