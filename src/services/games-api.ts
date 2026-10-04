@@ -1,7 +1,9 @@
 import { getJson } from './api';
 
 export type CategorySlug = 'all' | 'puzzle' | 'card' | 'match' | 'farm' | 'strategy' | 'arcade';
-export type GameSort = 'rating-desc' | 'rating-asc' | 'likes-desc' | 'name-asc';
+export type GameSort = 'rating-desc' | 'rating-asc' | 'name-asc' | 'name-desc';
+
+export const DEFAULT_GAME_SORT: GameSort = 'rating-desc';
 
 export interface PublicGame {
   cardImage: string;
