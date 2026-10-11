@@ -8,275 +8,392 @@ import { validateAuthValues } from './auth-validation';
 
 interface FieldBinding {
   errorElement: HTMLParagraphElement;
+  fieldName: AuthFieldName;
   input: HTMLInputElement;
-  name: AuthFieldName;
 }
 
-interface FormController {
-  reset: () => void;
-}
+const AUTH_DIALOG_FORM_SELECTOR: string = '.auth-dialog form';
 
-const formControllers: WeakMap<HTMLFormElement, FormController> = new WeakMap<
-  HTMLFormElement,
-  FormController
->();
+const INITIALIZED_ATTRIBUTE: string =
+  'data-auth-validation-initialized';
 
-let errorIdentifier: number = 0;
-let isInitialized: boolean = false;
+const ENHANCED_ATTRIBUTE: string =
+  'data-auth-validation-enhanced';
+
+const RESET_EVENT_NAME: string =
+  'auth-validation-reset';
+
+const MODE_SWITCH_LABELS: readonly string[] = [
+  'login',
+  'register',
+  'registration',
+];
 
 function createErrorElement(
   input: HTMLInputElement,
-  name: AuthFieldName,
+  fieldName: AuthFieldName,
 ): HTMLParagraphElement {
-  errorIdentifier += 1;
+  const errorElement: HTMLParagraphElement =
+    document.createElement('p');
 
-  const errorElement: HTMLParagraphElement = document.createElement('p');
-  const errorId: string = `auth-${name}-error-${errorIdentifier}`;
+  const errorId: string =
+    `auth-${fieldName}-error-${globalThis.crypto.randomUUID()}`;
 
   errorElement.id = errorId;
   errorElement.className = 'auth-dialog__field-error';
-  errorElement.dataset.validationFor = name;
+  errorElement.hidden = true;
   errorElement.setAttribute('aria-live', 'polite');
 
   input.setAttribute('aria-describedby', errorId);
-  input.insertAdjacentElement('afterend', errorElement);
+  input.after(errorElement);
 
   return errorElement;
 }
 
-function createBinding(input: HTMLInputElement, name: AuthFieldName): FieldBinding {
+function createFieldBinding(
+  input: HTMLInputElement,
+  fieldName: AuthFieldName,
+): FieldBinding {
   return {
+    errorElement: createErrorElement(input, fieldName),
+    fieldName,
     input,
-    name,
-    errorElement: createErrorElement(input, name),
   };
 }
 
-function getFieldValue(
-  bindings: Map<AuthFieldName, FieldBinding>,
-  name: AuthFieldName,
-): string {
-  return bindings.get(name)?.input.value ?? '';
-}
+function setFieldError(
+  binding: FieldBinding,
+  errorMessage: string | undefined,
+): void {
+  const isInvalid: boolean = errorMessage !== undefined;
 
-function readValues(bindings: Map<AuthFieldName, FieldBinding>): AuthFormValues {
-  return {
-    email: getFieldValue(bindings, 'email'),
-    username: getFieldValue(bindings, 'username'),
-    password: getFieldValue(bindings, 'password'),
-    confirmPassword: getFieldValue(bindings, 'confirmPassword'),
-  };
-}
+  binding.errorElement.textContent = errorMessage ?? '';
+  binding.errorElement.hidden = !isInvalid;
 
-function renderFieldError(binding: FieldBinding, message: string): void {
-  const isInvalid: boolean = message.length > 0;
+  binding.input.classList.toggle(
+    'auth-dialog__input--invalid',
+    isInvalid,
+  );
 
-  binding.errorElement.textContent = message;
-  binding.input.classList.toggle('auth-dialog__input--invalid', isInvalid);
-  binding.input.setAttribute('aria-invalid', String(isInvalid));
-}
-
-function findUsernameInput(form: HTMLFormElement): HTMLInputElement | null {
-  return form.querySelector<HTMLInputElement>(
-    'input[name="username"], input[type="text"]',
+  binding.input.setAttribute(
+    'aria-invalid',
+    String(isInvalid),
   );
 }
 
-function enhanceForm(form: HTMLFormElement): FormController | undefined {
-  const emailInput: HTMLInputElement | null =
-  form.querySelector<HTMLInputElement>('input[type="email"]');
+function clearFieldError(binding: FieldBinding): void {
+  binding.errorElement.textContent = '';
+  binding.errorElement.hidden = true;
 
-const passwordInputs: HTMLInputElement[] = [
-  ...form.querySelectorAll<HTMLInputElement>('input[type="password"]'),
-];
+  binding.input.classList.remove(
+    'auth-dialog__input--invalid',
+  );
 
-const passwordInput: HTMLInputElement | undefined = passwordInputs.at(0);
-const confirmPasswordInput: HTMLInputElement | undefined = passwordInputs.at(1);
-
-const submitButton: HTMLButtonElement | null =
-  form.querySelector<HTMLButtonElement>('button[type="submit"]');
-
-if (emailInput === null || passwordInput === undefined || submitButton === null) {
-  return undefined;
+  binding.input.setAttribute('aria-invalid', 'false');
 }
 
-const isRegistration: boolean = confirmPasswordInput !== undefined;
-  const mode: AuthValidationMode = isRegistration ? 'register' : 'login';
-  const usernameInput: HTMLInputElement | null = isRegistration
-    ? findUsernameInput(form)
-    : null;
+function getAuthMode(
+  confirmPasswordInput: HTMLInputElement | undefined,
+): AuthValidationMode {
+  return confirmPasswordInput === undefined
+    ? 'login'
+    : 'register';
+}
 
-  if (isRegistration && usernameInput === null) {
-    return undefined;
+function getFormValues(
+  bindings: Map<AuthFieldName, FieldBinding>,
+): AuthFormValues {
+  return {
+    email: bindings.get('email')?.input.value ?? '',
+    username: bindings.get('username')?.input.value ?? '',
+    password: bindings.get('password')?.input.value ?? '',
+    confirmPassword:
+      bindings.get('confirmPassword')?.input.value ?? '',
+  };
+}
+
+function enhanceAuthForm(form: HTMLFormElement): void {
+  if (form.hasAttribute(ENHANCED_ATTRIBUTE)) {
+    return;
   }
+
+  const emailInput: HTMLInputElement | undefined =
+    form.querySelector<HTMLInputElement>(
+      'input[type="email"]',
+    ) ?? undefined;
+
+  const passwordInputs: HTMLInputElement[] = [
+    ...form.querySelectorAll<HTMLInputElement>(
+      'input[type="password"]',
+    ),
+  ];
+
+  const passwordInput: HTMLInputElement | undefined =
+    passwordInputs.at(0);
+
+  const confirmPasswordInput:
+    | HTMLInputElement
+    | undefined = passwordInputs.at(1);
+
+  const submitButton: HTMLButtonElement | undefined =
+    form.querySelector<HTMLButtonElement>(
+      'button[type="submit"]',
+    ) ?? undefined;
+
+  if (
+    emailInput === undefined ||
+    passwordInput === undefined ||
+    submitButton === undefined
+  ) {
+    return;
+  }
+
+  const mode: AuthValidationMode = getAuthMode(
+    confirmPasswordInput,
+  );
+
+  const usernameInput: HTMLInputElement | undefined =
+    mode === 'register'
+      ? (form.querySelector<HTMLInputElement>(
+          'input[name="username"], input[type="text"]',
+        ) ?? undefined)
+      : undefined;
+
+  if (
+    mode === 'register' &&
+    (usernameInput === undefined ||
+      confirmPasswordInput === undefined)
+  ) {
+    return;
+  }
+
+  form.setAttribute(ENHANCED_ATTRIBUTE, '');
 
   emailInput.name = 'email';
   passwordInput.name = 'password';
 
-  const bindings: Map<AuthFieldName, FieldBinding> = new Map<
-    AuthFieldName,
-    FieldBinding
-  >();
+  const bindings: Map<AuthFieldName, FieldBinding> =
+    new Map<AuthFieldName, FieldBinding>();
 
-  if (usernameInput !== null) {
+  bindings.set(
+    'email',
+    createFieldBinding(emailInput, 'email'),
+  );
+
+  bindings.set(
+    'password',
+    createFieldBinding(passwordInput, 'password'),
+  );
+
+  if (usernameInput !== undefined) {
     usernameInput.name = 'username';
-    bindings.set('username', createBinding(usernameInput, 'username'));
+
+    bindings.set(
+      'username',
+      createFieldBinding(usernameInput, 'username'),
+    );
   }
 
-  bindings.set('email', createBinding(emailInput, 'email'));
-  bindings.set('password', createBinding(passwordInput, 'password'));
+  if (confirmPasswordInput !== undefined) {
+    confirmPasswordInput.name = 'confirmPassword';
 
-if (confirmPasswordInput !== undefined) {
-  confirmPasswordInput.name = 'confirmPassword';
-  bindings.set(
-    'confirmPassword',
-    createBinding(confirmPasswordInput, 'confirmPassword'),
-  );
-}
+    bindings.set(
+      'confirmPassword',
+      createFieldBinding(
+        confirmPasswordInput,
+        'confirmPassword',
+      ),
+    );
+  }
 
-  const touchedFields: Set<AuthFieldName> = new Set<AuthFieldName>();
+  const touchedFields: Set<AuthFieldName> =
+    new Set<AuthFieldName>();
 
-  const synchronizeValidation: () => boolean = (): boolean => {
-    const values: AuthFormValues = readValues(bindings);
-    const errors: AuthValidationErrors = validateAuthValues(mode, values);
+  const updateValidation = (
+    shouldShowAllErrors: boolean,
+  ): void => {
+    const values: AuthFormValues = getFormValues(bindings);
 
-    for (const binding of bindings.values()) {
-      const message: string = touchedFields.has(binding.name)
-        ? (errors[binding.name] ?? '')
-        : '';
+    const errors: AuthValidationErrors =
+      validateAuthValues(mode, values);
 
-      renderFieldError(binding, message);
+    for (const [fieldName, binding] of bindings) {
+      const shouldShowError: boolean =
+        shouldShowAllErrors ||
+        touchedFields.has(fieldName);
+
+      const errorMessage: string | undefined =
+        shouldShowError
+          ? errors[fieldName]
+          : undefined;
+
+      setFieldError(binding, errorMessage);
     }
 
-    const isFormValid: boolean = Object.keys(errors).length === 0;
-    submitButton.disabled = !isFormValid;
+    const isFormValid: boolean =
+      Object.keys(errors).length === 0;
 
-    return isFormValid;
+    submitButton.disabled = !isFormValid;
+    submitButton.setAttribute(
+      'aria-disabled',
+      String(!isFormValid),
+    );
   };
 
-  for (const binding of bindings.values()) {
-    const handleValueChange: () => void = (): void => {
-      touchedFields.add(binding.name);
+  const handleFieldInteraction = (
+    fieldName: AuthFieldName,
+  ): void => {
+    touchedFields.add(fieldName);
+    updateValidation(false);
+  };
 
-      if (binding.name === 'password') {
-        const confirmationBinding: FieldBinding | undefined =
-          bindings.get('confirmPassword');
+  for (const [fieldName, binding] of bindings) {
+    binding.input.addEventListener(
+      'input',
+      (): void => {
+        handleFieldInteraction(fieldName);
+      },
+    );
 
-        if (
-          confirmationBinding !== undefined &&
-          (confirmationBinding.input.value.length > 0 ||
-            touchedFields.has('confirmPassword'))
-        ) {
-          touchedFields.add('confirmPassword');
-        }
+    binding.input.addEventListener(
+      'change',
+      (): void => {
+        handleFieldInteraction(fieldName);
+      },
+    );
+
+    binding.input.addEventListener(
+      'blur',
+      (): void => {
+        handleFieldInteraction(fieldName);
+      },
+    );
+  }
+
+  form.addEventListener(
+    'submit',
+    (event: SubmitEvent): void => {
+      for (const fieldName of bindings.keys()) {
+        touchedFields.add(fieldName);
       }
 
-      synchronizeValidation();
-    };
+      const values: AuthFormValues =
+        getFormValues(bindings);
 
-    const handleBlur: () => void = (): void => {
-      touchedFields.add(binding.name);
-      synchronizeValidation();
-    };
+      const errors: AuthValidationErrors =
+        validateAuthValues(mode, values);
 
-    binding.input.addEventListener('input', handleValueChange);
-    binding.input.addEventListener('change', handleValueChange);
-    binding.input.addEventListener('blur', handleBlur);
-  }
+      updateValidation(true);
 
-  form.addEventListener('submit', (event: SubmitEvent): void => {
-    for (const binding of bindings.values()) {
-      touchedFields.add(binding.name);
-    }
+      const isFormValid: boolean =
+        Object.keys(errors).length === 0;
 
-    if (!synchronizeValidation()) {
-      event.preventDefault();
-    }
-  });
+      if (!isFormValid) {
+        event.preventDefault();
+      }
+    },
+  );
 
-  const reset: () => void = (): void => {
-    form.reset();
-    touchedFields.clear();
+  form.addEventListener(
+    RESET_EVENT_NAME,
+    (): void => {
+      form.reset();
+      touchedFields.clear();
 
-    queueMicrotask((): void => {
-      synchronizeValidation();
-    });
-  };
+      for (const binding of bindings.values()) {
+        clearFieldError(binding);
+      }
 
-  form.addEventListener('reset', (): void => {
-    touchedFields.clear();
+      updateValidation(false);
+    },
+  );
 
-    queueMicrotask((): void => {
-      synchronizeValidation();
-    });
-  });
-
-  synchronizeValidation();
-
-  return { reset };
+  updateValidation(false);
 }
 
-function scanAuthForms(): void {
+function enhanceAvailableAuthForms(): void {
   const forms: NodeListOf<HTMLFormElement> =
-    document.querySelectorAll<HTMLFormElement>('.auth-dialog form');
+    document.querySelectorAll<HTMLFormElement>(
+      AUTH_DIALOG_FORM_SELECTOR,
+    );
 
   for (const form of forms) {
-    if (formControllers.has(form)) {
-      continue;
-    }
-
-    const controller: FormController | undefined = enhanceForm(form);
-
-    if (controller !== undefined) {
-      formControllers.set(form, controller);
-    }
+    enhanceAuthForm(form);
   }
 }
 
-function isModeSwitchControl(target: EventTarget | null): boolean {
-  if (!(target instanceof Element)) {
+function isAuthModeSwitchControl(
+  target: Element,
+): boolean {
+  const control: HTMLElement | undefined =
+    target.closest<HTMLElement>(
+      'button, a, [role="tab"]',
+    ) ?? undefined;
+
+  if (control === undefined) {
     return false;
   }
 
-  const button: HTMLButtonElement | null = target.closest<HTMLButtonElement>('button');
-
-  if (button === null || button.closest('.auth-dialog') === null) {
+  if (
+    control instanceof HTMLButtonElement &&
+    control.type === 'submit'
+  ) {
     return false;
   }
 
-  if (button.getAttribute('role') === 'tab') {
+  const declaredMode: string =
+    control.dataset.authMode?.toLowerCase() ?? '';
+
+  if (
+    declaredMode === 'login' ||
+    declaredMode === 'register' ||
+    declaredMode === 'registration'
+  ) {
     return true;
   }
 
-  if (button.type === 'submit') {
-    return false;
-  }
+  const label: string =
+    control.textContent?.trim().toLowerCase() ?? '';
 
-  const buttonText: string = button.textContent?.trim().toLowerCase() ?? '';
-  return buttonText === 'login' || buttonText === 'register';
+  return MODE_SWITCH_LABELS.includes(label);
 }
 
 function resetAuthForms(): void {
   const forms: NodeListOf<HTMLFormElement> =
-    document.querySelectorAll<HTMLFormElement>('.auth-dialog form');
+    document.querySelectorAll<HTMLFormElement>(
+      AUTH_DIALOG_FORM_SELECTOR,
+    );
 
   for (const form of forms) {
-    formControllers.get(form)?.reset();
+    form.dispatchEvent(new Event(RESET_EVENT_NAME));
   }
 }
 
 export function initializeAuthFormValidation(): void {
-  if (isInitialized) {
+  const documentElement: HTMLElement =
+    document.documentElement;
+
+  if (
+    documentElement.hasAttribute(
+      INITIALIZED_ATTRIBUTE,
+    )
+  ) {
     return;
   }
 
-  isInitialized = true;
+  documentElement.setAttribute(
+    INITIALIZED_ATTRIBUTE,
+    '',
+  );
 
-  const observer: MutationObserver = new MutationObserver((): void => {
-    scanAuthForms();
-  });
+  enhanceAvailableAuthForms();
 
-  observer.observe(document.documentElement, {
+  const observer: MutationObserver =
+    new MutationObserver((): void => {
+      enhanceAvailableAuthForms();
+    });
+
+  observer.observe(document.body, {
     childList: true,
     subtree: true,
   });
@@ -284,14 +401,16 @@ export function initializeAuthFormValidation(): void {
   document.addEventListener(
     'click',
     (event: MouseEvent): void => {
-      if (!isModeSwitchControl(event.target)) {
+      if (!(event.target instanceof Element)) {
         return;
       }
 
-      resetAuthForms();
+      if (isAuthModeSwitchControl(event.target)) {
+        resetAuthForms();
+      }
     },
-    true,
+    {
+      capture: true,
+    },
   );
-
-  scanAuthForms();
 }

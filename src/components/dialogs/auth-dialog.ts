@@ -2,7 +2,6 @@ import { initializeAuthFormValidation } from '../../features/auth/auth-form-vali
 import type { AuthMode } from '../header/header';
 import './auth-dialog.scss';
 
-initializeAuthFormValidation();
 
 interface AuthField {
   autocomplete: AutoFill;
@@ -138,6 +137,7 @@ function createField(field: AuthField): HTMLLabelElement {
 }
 
 export function createAuthDialog(options: AuthDialogOptions): AuthDialog {
+  initializeAuthFormValidation();
   const element: HTMLDialogElement = document.createElement('dialog');
   element.className = 'auth-dialog';
   element.setAttribute('aria-labelledby', 'auth-title');

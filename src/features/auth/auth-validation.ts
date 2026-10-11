@@ -1,6 +1,10 @@
 export type AuthValidationMode = 'login' | 'register';
 
-export type AuthFieldName = 'email' | 'username' | 'password' | 'confirmPassword';
+export type AuthFieldName =
+  | 'email'
+  | 'username'
+  | 'password'
+  | 'confirmPassword';
 
 export interface AuthFormValues {
   email: string;
@@ -17,7 +21,7 @@ const USERNAME_START_PATTERN: RegExp = /^[A-Z]/;
 const UPPERCASE_PATTERN: RegExp = /[A-Z]/;
 const DIGIT_PATTERN: RegExp = /\d/;
 const SPECIAL_CHARACTER_PATTERN: RegExp = /[^A-Za-z0-9]/;
-const PASSWORD_ALLOWED_PATTERN: RegExp = /^[\x21-\x7E]+$/;
+const PASSWORD_ALLOWED_PATTERN: RegExp = /^[\u{21}-\u{7E}]+$/u;
 
 const USERNAME_MIN_LENGTH: number = 2;
 const USERNAME_MAX_LENGTH: number = 30;
@@ -30,11 +34,9 @@ function validateEmail(email: string): string | undefined {
     return 'Email is required.';
   }
 
-  if (!EMAIL_PATTERN.test(normalizedEmail)) {
-    return 'Enter a valid email address.';
-  }
-
-  return undefined;
+  return EMAIL_PATTERN.test(normalizedEmail)
+    ? undefined
+    : 'Enter a valid email address.';
 }
 
 function validateUsername(username: string): string | undefined {
@@ -48,18 +50,16 @@ function validateUsername(username: string): string | undefined {
     normalizedUsername.length < USERNAME_MIN_LENGTH ||
     normalizedUsername.length > USERNAME_MAX_LENGTH
   ) {
-    return 'Username must contain 2–30 characters.';
+    return 'Username must contain between 2 and 30 characters.';
   }
 
   if (!USERNAME_START_PATTERN.test(normalizedUsername)) {
     return 'Username must start with an uppercase English letter.';
   }
 
-  if (!USERNAME_PATTERN.test(normalizedUsername)) {
-    return 'Username may contain English letters and digits only.';
-  }
-
-  return undefined;
+  return USERNAME_PATTERN.test(normalizedUsername)
+    ? undefined
+    : 'Username may contain only English letters and digits.';
 }
 
 function validateLoginPassword(password: string): string | undefined {
@@ -67,14 +67,14 @@ function validateLoginPassword(password: string): string | undefined {
     return 'Password is required.';
   }
 
-  if (password.length < PASSWORD_MIN_LENGTH) {
-    return 'Password must contain at least 6 characters.';
-  }
-
-  return undefined;
+  return password.length >= PASSWORD_MIN_LENGTH
+    ? undefined
+    : 'Password must contain at least 6 characters.';
 }
 
-function validateRegistrationPassword(password: string): string | undefined {
+function validateRegistrationPassword(
+  password: string,
+): string | undefined {
   if (password.length === 0) {
     return 'Password is required.';
   }
@@ -84,7 +84,7 @@ function validateRegistrationPassword(password: string): string | undefined {
   }
 
   if (!PASSWORD_ALLOWED_PATTERN.test(password)) {
-    return 'Use English letters, digits, and special characters without spaces.';
+    return 'Password may contain only English letters, digits, and special characters.';
   }
 
   if (!UPPERCASE_PATTERN.test(password)) {
@@ -95,11 +95,9 @@ function validateRegistrationPassword(password: string): string | undefined {
     return 'Password must contain a digit.';
   }
 
-  if (!SPECIAL_CHARACTER_PATTERN.test(password)) {
-    return 'Password must contain a special character.';
-  }
-
-  return undefined;
+  return SPECIAL_CHARACTER_PATTERN.test(password)
+    ? undefined
+    : 'Password must contain a special character.';
 }
 
 function validateConfirmation(
@@ -110,11 +108,19 @@ function validateConfirmation(
     return 'Please confirm your password.';
   }
 
-  if (confirmPassword !== password) {
-    return 'Passwords do not match.';
-  }
+  return confirmPassword === password
+    ? undefined
+    : 'Passwords do not match.';
+}
 
-  return undefined;
+function addError(
+  errors: AuthValidationErrors,
+  fieldName: AuthFieldName,
+  message: string | undefined,
+): void {
+  if (message !== undefined) {
+    errors[fieldName] = message;
+  }
 }
 
 export function validateAuthValues(
@@ -122,40 +128,30 @@ export function validateAuthValues(
   values: AuthFormValues,
 ): AuthValidationErrors {
   const errors: AuthValidationErrors = {};
-  const emailError: string | undefined = validateEmail(values.email);
 
-  if (emailError !== undefined) {
-    errors.email = emailError;
-  }
+  addError(errors, 'email', validateEmail(values.email));
 
   if (mode === 'login') {
-    const passwordError: string | undefined = validateLoginPassword(values.password);
-
-    if (passwordError !== undefined) {
-      errors.password = passwordError;
-    }
+    addError(
+      errors,
+      'password',
+      validateLoginPassword(values.password),
+    );
 
     return errors;
   }
 
-  const usernameError: string | undefined = validateUsername(values.username);
-  const passwordError: string | undefined = validateRegistrationPassword(values.password);
-  const confirmationError: string | undefined = validateConfirmation(
-    values.password,
-    values.confirmPassword,
+  addError(errors, 'username', validateUsername(values.username));
+  addError(
+    errors,
+    'password',
+    validateRegistrationPassword(values.password),
   );
-
-  if (usernameError !== undefined) {
-    errors.username = usernameError;
-  }
-
-  if (passwordError !== undefined) {
-    errors.password = passwordError;
-  }
-
-  if (confirmationError !== undefined) {
-    errors.confirmPassword = confirmationError;
-  }
+  addError(
+    errors,
+    'confirmPassword',
+    validateConfirmation(values.password, values.confirmPassword),
+  );
 
   return errors;
 }
