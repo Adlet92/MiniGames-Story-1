@@ -1,5 +1,8 @@
+import { initializeAuthFormValidation } from '../../features/auth/auth-form-validation';
 import type { AuthMode } from '../header/header';
 import './auth-dialog.scss';
+
+initializeAuthFormValidation();
 
 interface AuthField {
   autocomplete: AutoFill;

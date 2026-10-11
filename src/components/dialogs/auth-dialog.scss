@@ -320,6 +320,25 @@
     outline-offset: 3px;
   }
 
+  &__field-error {
+    min-height: t.$auth-validation-error-line-height;
+    margin: t.$size-1 0 0;
+    color: t.$auth-validation-error-color;
+    font-size: t.$auth-validation-error-font-size;
+    line-height: t.$auth-validation-error-line-height;
+  }
+
+  &__input--invalid,
+  input[aria-invalid='true'] {
+    border-color: t.$auth-validation-error-color;
+  }
+
+  button:disabled {
+    opacity: t.$auth-disabled-opacity;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
   @media (max-width: t.$breakpoint-mobile) {
     max-width: calc(100vw - (t.$size-1 * 3));
     max-height: calc(100dvh - (t.$size-1 * 3));
