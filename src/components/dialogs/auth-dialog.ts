@@ -46,8 +46,7 @@ export interface AuthDialogOptions {
 const AUTH_CONTENT: Record<AuthMode, AuthContent> = {
   login: {
     heading: 'Welcome Back!',
-    subtitle:
-      'Log in to continue your MiniGames journey.',
+    subtitle: 'Log in to continue your MiniGames journey.',
     submitLabel: 'Login',
     fields: [
       {
@@ -73,8 +72,7 @@ const AUTH_CONTENT: Record<AuthMode, AuthContent> = {
 
   signup: {
     heading: 'Create Account',
-    subtitle:
-      'Join MiniGames to track your score & streak.',
+    subtitle: 'Join MiniGames to track your score & streak.',
     submitLabel: 'Create Account',
     fields: [
       {
@@ -117,58 +115,42 @@ const AUTH_CONTENT: Record<AuthMode, AuthContent> = {
   },
 };
 
-function createTab(
-  label: string,
-  mode: AuthMode,
-): HTMLButtonElement {
-  const tab: HTMLButtonElement =
-    document.createElement('button');
+function createTab(label: string, mode: AuthMode): HTMLButtonElement {
+  const tab: HTMLButtonElement = document.createElement('button');
 
   tab.type = 'button';
   tab.className = 'auth-dialog__tab';
   tab.id = `auth-${mode}-tab`;
   tab.dataset.mode = mode;
   tab.setAttribute('role', 'tab');
-  tab.setAttribute(
-    'aria-controls',
-    'auth-form-panel',
-  );
+  tab.setAttribute('aria-controls', 'auth-form-panel');
   tab.textContent = label;
 
   return tab;
 }
 
-function createField(
-  field: AuthField,
-): AuthFieldView {
-  const container: HTMLLabelElement =
-    document.createElement('label');
+function createField(field: AuthField): AuthFieldView {
+  const container: HTMLLabelElement = document.createElement('label');
 
   container.className = 'auth-dialog__field';
   container.htmlFor = field.id;
 
-  const labelText: HTMLSpanElement =
-    document.createElement('span');
+  const labelText: HTMLSpanElement = document.createElement('span');
 
   labelText.className = 'auth-dialog__label';
   labelText.textContent = field.label;
 
-  const inputWrapper: HTMLSpanElement =
-    document.createElement('span');
+  const inputWrapper: HTMLSpanElement = document.createElement('span');
 
-  inputWrapper.className =
-    'auth-dialog__input-wrapper';
+  inputWrapper.className = 'auth-dialog__input-wrapper';
 
-  const icon: HTMLSpanElement =
-    document.createElement('span');
+  const icon: HTMLSpanElement = document.createElement('span');
 
-  icon.className =
-    `auth-dialog__field-icon auth-dialog__field-icon--${field.icon}`;
+  icon.className = `auth-dialog__field-icon auth-dialog__field-icon--${field.icon}`;
 
   icon.setAttribute('aria-hidden', 'true');
 
-  const input: HTMLInputElement =
-    document.createElement('input');
+  const input: HTMLInputElement = document.createElement('input');
 
   input.id = field.id;
   input.name = field.name;
@@ -178,27 +160,18 @@ function createField(
   input.required = true;
   input.setAttribute('aria-invalid', 'false');
 
-  const errorElement: HTMLSpanElement =
-    document.createElement('span');
+  const errorElement: HTMLSpanElement = document.createElement('span');
 
   errorElement.id = `${field.id}-error`;
-  errorElement.className =
-    'auth-dialog__field-error';
+  errorElement.className = 'auth-dialog__field-error';
   errorElement.hidden = true;
   errorElement.setAttribute('aria-live', 'polite');
 
-  input.setAttribute(
-    'aria-describedby',
-    errorElement.id,
-  );
+  input.setAttribute('aria-describedby', errorElement.id);
 
   inputWrapper.append(icon, input);
 
-  container.append(
-    labelText,
-    inputWrapper,
-    errorElement,
-  );
+  container.append(labelText, inputWrapper, errorElement);
 
   return {
     container,
@@ -209,176 +182,125 @@ function createField(
   };
 }
 
-export function createAuthDialog(
-  options: AuthDialogOptions,
-): AuthDialog {
-  const element: HTMLDialogElement =
-    document.createElement('dialog');
+export function createAuthDialog(options: AuthDialogOptions): AuthDialog {
+  const element: HTMLDialogElement = document.createElement('dialog');
 
   element.className = 'auth-dialog';
-  element.setAttribute(
-    'aria-labelledby',
-    'auth-title',
-  );
+  element.setAttribute('aria-labelledby', 'auth-title');
 
-  const tabs: HTMLDivElement =
-    document.createElement('div');
+  const tabs: HTMLDivElement = document.createElement('div');
 
   tabs.className = 'auth-dialog__tabs';
   tabs.setAttribute('role', 'tablist');
-  tabs.setAttribute(
-    'aria-label',
-    'Choose authentication form',
-  );
+  tabs.setAttribute('aria-label', 'Choose authentication form');
 
-  const loginTab: HTMLButtonElement =
-    createTab('Login', 'login');
+  const loginTab: HTMLButtonElement = createTab('Login', 'login');
 
-  const signupTab: HTMLButtonElement =
-    createTab('Register', 'signup');
+  const signupTab: HTMLButtonElement = createTab('Register', 'signup');
 
   tabs.append(loginTab, signupTab);
 
-  const panel: HTMLDivElement =
-    document.createElement('div');
+  const panel: HTMLDivElement = document.createElement('div');
 
   panel.className = 'auth-dialog__panel';
   panel.id = 'auth-form-panel';
   panel.setAttribute('role', 'tabpanel');
 
-  const headingGroup: HTMLDivElement =
-    document.createElement('div');
+  const headingGroup: HTMLDivElement = document.createElement('div');
 
-  headingGroup.className =
-    'auth-dialog__heading-group';
+  headingGroup.className = 'auth-dialog__heading-group';
 
-  const title: HTMLHeadingElement =
-    document.createElement('h2');
+  const title: HTMLHeadingElement = document.createElement('h2');
 
   title.className = 'auth-dialog__title';
   title.id = 'auth-title';
 
-  const subtitle: HTMLParagraphElement =
-    document.createElement('p');
+  const subtitle: HTMLParagraphElement = document.createElement('p');
 
   subtitle.className = 'auth-dialog__subtitle';
 
   headingGroup.append(title, subtitle);
 
-  const form: HTMLFormElement =
-    document.createElement('form');
+  const form: HTMLFormElement = document.createElement('form');
 
   form.className = 'auth-dialog__form';
   form.noValidate = true;
 
-  const fields: HTMLDivElement =
-    document.createElement('div');
+  const fields: HTMLDivElement = document.createElement('div');
 
   fields.className = 'auth-dialog__fields';
 
-  const loginOptions: HTMLDivElement =
-    document.createElement('div');
+  const loginOptions: HTMLDivElement = document.createElement('div');
 
-  loginOptions.className =
-    'auth-dialog__login-options';
+  loginOptions.className = 'auth-dialog__login-options';
 
-  const rememberLabel: HTMLLabelElement =
-    document.createElement('label');
+  const rememberLabel: HTMLLabelElement = document.createElement('label');
 
-  rememberLabel.className =
-    'auth-dialog__remember';
+  rememberLabel.className = 'auth-dialog__remember';
 
-  const rememberInput: HTMLInputElement =
-    document.createElement('input');
+  const rememberInput: HTMLInputElement = document.createElement('input');
 
   rememberInput.type = 'checkbox';
   rememberInput.name = 'remember-me';
 
-  const rememberText: HTMLSpanElement =
-    document.createElement('span');
+  const rememberText: HTMLSpanElement = document.createElement('span');
 
   rememberText.textContent = 'Remember me';
 
-  rememberLabel.append(
-    rememberInput,
-    rememberText,
-  );
+  rememberLabel.append(rememberInput, rememberText);
 
-  const forgotLink: HTMLAnchorElement =
-    document.createElement('a');
+  const forgotLink: HTMLAnchorElement = document.createElement('a');
 
   forgotLink.href = '/';
   forgotLink.textContent = 'Forgot password?';
 
   loginOptions.append(rememberLabel, forgotLink);
 
-  const submit: HTMLButtonElement =
-    document.createElement('button');
+  const submit: HTMLButtonElement = document.createElement('button');
 
   submit.type = 'submit';
   submit.className = 'auth-dialog__submit';
   submit.disabled = true;
 
-  const divider: HTMLDivElement =
-    document.createElement('div');
+  const divider: HTMLDivElement = document.createElement('div');
 
   divider.className = 'auth-dialog__divider';
 
-  const dividerText: HTMLSpanElement =
-    document.createElement('span');
+  const dividerText: HTMLSpanElement = document.createElement('span');
 
   dividerText.textContent = 'or';
   divider.append(dividerText);
 
-  const google: HTMLButtonElement =
-    document.createElement('button');
+  const google: HTMLButtonElement = document.createElement('button');
 
   google.type = 'button';
   google.className = 'auth-dialog__google';
 
-  const googleMark: HTMLSpanElement =
-    document.createElement('span');
+  const googleMark: HTMLSpanElement = document.createElement('span');
 
-  googleMark.className =
-    'auth-dialog__google-mark';
+  googleMark.className = 'auth-dialog__google-mark';
 
   googleMark.setAttribute('aria-hidden', 'true');
   googleMark.textContent = 'G';
 
-  const googleLabel: HTMLSpanElement =
-    document.createElement('span');
+  const googleLabel: HTMLSpanElement = document.createElement('span');
 
   google.append(googleMark, googleLabel);
 
-  const footer: HTMLParagraphElement =
-    document.createElement('p');
+  const footer: HTMLParagraphElement = document.createElement('p');
 
   footer.className = 'auth-dialog__footer';
 
-  const footerText: HTMLSpanElement =
-    document.createElement('span');
+  const footerText: HTMLSpanElement = document.createElement('span');
 
-  const footerSwitch: HTMLButtonElement =
-    document.createElement('button');
+  const footerSwitch: HTMLButtonElement = document.createElement('button');
 
   footerSwitch.type = 'button';
-  footerSwitch.className =
-    'auth-dialog__footer-switch';
+  footerSwitch.className = 'auth-dialog__footer-switch';
 
-  footer.append(
-    footerText,
-    document.createTextNode(' '),
-    footerSwitch,
-  );
+  footer.append(footerText, document.createTextNode(' '), footerSwitch);
 
-  form.append(
-    fields,
-    loginOptions,
-    submit,
-    divider,
-    google,
-    footer,
-  );
+  form.append(fields, loginOptions, submit, divider, google, footer);
 
   panel.append(headingGroup, form);
   element.append(tabs, panel);
@@ -392,93 +314,59 @@ export function createAuthDialog(
   let previousOverflow: string = '';
   let previouslyFocused: HTMLElement | undefined;
 
-  const touchedFields: Set<AuthFieldName> =
-    new Set<AuthFieldName>();
+  const touchedFields: Set<AuthFieldName> = new Set<AuthFieldName>();
 
-  function getFieldValue(
-    fieldName: AuthFieldName,
-  ): string {
-    const fieldView: AuthFieldView | undefined =
-      activeFieldViews.find(
-        (view: AuthFieldView): boolean =>
-          view.name === fieldName,
-      );
+  function getFieldValue(fieldName: AuthFieldName): string {
+    const fieldView: AuthFieldView | undefined = activeFieldViews.find(
+      (view: AuthFieldView): boolean => view.name === fieldName,
+    );
 
     return fieldView?.input.value ?? '';
   }
 
   function getFormValues(): AuthFormValues {
     return {
-      confirmPassword:
-        getFieldValue('confirmPassword'),
+      confirmPassword: getFieldValue('confirmPassword'),
       email: getFieldValue('email'),
       password: getFieldValue('password'),
       username: getFieldValue('username'),
     };
   }
 
-  function updateFieldValidation(
-    fieldView: AuthFieldView,
-    errorMessage: string | undefined,
-  ): void {
-    const isInvalid: boolean =
-      errorMessage !== undefined;
+  function updateFieldValidation(fieldView: AuthFieldView, errorMessage: string | undefined): void {
+    const isInvalid: boolean = errorMessage !== undefined;
 
-    fieldView.errorElement.textContent =
-      errorMessage ?? '';
+    fieldView.errorElement.textContent = errorMessage ?? '';
 
     fieldView.errorElement.hidden = !isInvalid;
 
-    fieldView.input.setAttribute(
-      'aria-invalid',
-      String(isInvalid),
-    );
+    fieldView.input.setAttribute('aria-invalid', String(isInvalid));
 
-    fieldView.inputWrapper.classList.toggle(
-      'auth-dialog__input-wrapper--invalid',
-      isInvalid,
-    );
+    fieldView.inputWrapper.classList.toggle('auth-dialog__input-wrapper--invalid', isInvalid);
   }
 
-  function refreshValidation(
-    shouldShowAllErrors: boolean,
-  ): void {
+  function refreshValidation(shouldShowAllErrors: boolean): void {
     const values: AuthFormValues = getFormValues();
 
-    const errors: AuthValidationErrors =
-      validateAuthValues(activeMode, values);
+    const errors: AuthValidationErrors = validateAuthValues(activeMode, values);
 
     for (const fieldView of activeFieldViews) {
-      const shouldShowError: boolean =
-        shouldShowAllErrors ||
-        touchedFields.has(fieldView.name);
+      const shouldShowError: boolean = shouldShowAllErrors || touchedFields.has(fieldView.name);
 
-      const errorMessage: string | undefined =
-        shouldShowError
-          ? errors[fieldView.name]
-          : undefined;
+      const errorMessage: string | undefined = shouldShowError ? errors[fieldView.name] : undefined;
 
-      updateFieldValidation(
-        fieldView,
-        errorMessage,
-      );
+      updateFieldValidation(fieldView, errorMessage);
     }
 
-    const hasErrors: boolean =
-      Object.keys(errors).length > 0;
+    const hasErrors: boolean = Object.keys(errors).length > 0;
 
     submit.disabled = hasErrors;
 
-    submit.setAttribute(
-      'aria-disabled',
-      String(hasErrors),
-    );
+    submit.setAttribute('aria-disabled', String(hasErrors));
   }
 
-  function bindFieldValidation(
-    fieldView: AuthFieldView,
-  ): void {
-    const validateField = (): void => {
+  function bindFieldValidation(fieldView: AuthFieldView): void {
+    const validateField: () => void = (): void => {
       touchedFields.add(fieldView.name);
 
       /*
@@ -489,20 +377,11 @@ export function createAuthDialog(
       refreshValidation(false);
     };
 
-    fieldView.input.addEventListener(
-      'input',
-      validateField,
-    );
+    fieldView.input.addEventListener('input', validateField);
 
-    fieldView.input.addEventListener(
-      'change',
-      validateField,
-    );
+    fieldView.input.addEventListener('change', validateField);
 
-    fieldView.input.addEventListener(
-      'blur',
-      validateField,
-    );
+    fieldView.input.addEventListener('blur', validateField);
   }
 
   function renderMode(mode: AuthMode): void {
@@ -512,19 +391,14 @@ export function createAuthDialog(
     touchedFields.clear();
     rememberInput.checked = false;
 
-    const fieldViews: AuthFieldView[] =
-      content.fields.map(
-        (field: AuthField): AuthFieldView =>
-          createField(field),
-      );
+    const fieldViews: AuthFieldView[] = content.fields.map((field: AuthField): AuthFieldView =>
+      createField(field),
+    );
 
     activeFieldViews = fieldViews;
 
     fields.replaceChildren(
-      ...fieldViews.map(
-        (fieldView: AuthFieldView): HTMLLabelElement =>
-          fieldView.container,
-      ),
+      ...fieldViews.map((fieldView: AuthFieldView): HTMLLabelElement => fieldView.container),
     );
 
     for (const fieldView of fieldViews) {
@@ -533,10 +407,7 @@ export function createAuthDialog(
 
     element.dataset.mode = mode;
 
-    panel.setAttribute(
-      'aria-labelledby',
-      `auth-${mode}-tab`,
-    );
+    panel.setAttribute('aria-labelledby', `auth-${mode}-tab`);
 
     title.textContent = content.heading;
     subtitle.textContent = content.subtitle;
@@ -544,34 +415,20 @@ export function createAuthDialog(
 
     loginOptions.hidden = mode !== 'login';
 
-    googleLabel.textContent =
-      mode === 'login'
-        ? 'Login with Google'
-        : 'Sign up with Google';
+    googleLabel.textContent = mode === 'login' ? 'Login with Google' : 'Sign up with Google';
 
     footerText.textContent =
-      mode === 'login'
-        ? "Don't have an account?"
-        : 'Already have an account?';
+      mode === 'login' ? "Don't have an account?" : 'Already have an account?';
 
-    footerSwitch.textContent =
-      mode === 'login' ? 'Register' : 'Login';
+    footerSwitch.textContent = mode === 'login' ? 'Register' : 'Login';
 
-    loginTab.setAttribute(
-      'aria-selected',
-      String(mode === 'login'),
-    );
+    loginTab.setAttribute('aria-selected', String(mode === 'login'));
 
-    signupTab.setAttribute(
-      'aria-selected',
-      String(mode === 'signup'),
-    );
+    signupTab.setAttribute('aria-selected', String(mode === 'signup'));
 
-    loginTab.tabIndex =
-      mode === 'login' ? 0 : -1;
+    loginTab.tabIndex = mode === 'login' ? 0 : -1;
 
-    signupTab.tabIndex =
-      mode === 'signup' ? 0 : -1;
+    signupTab.tabIndex = mode === 'signup' ? 0 : -1;
 
     refreshValidation(false);
   }
@@ -583,29 +440,19 @@ export function createAuthDialog(
 
     clearTimeout(switchTimer);
 
-    panel.classList.remove(
-      'auth-dialog__panel--entering',
-    );
+    panel.classList.remove('auth-dialog__panel--entering');
 
-    panel.classList.add(
-      'auth-dialog__panel--leaving',
-    );
+    panel.classList.add('auth-dialog__panel--leaving');
 
     switchTimer = setTimeout((): void => {
       renderMode(mode);
 
-      panel.classList.remove(
-        'auth-dialog__panel--leaving',
-      );
+      panel.classList.remove('auth-dialog__panel--leaving');
 
-      panel.classList.add(
-        'auth-dialog__panel--entering',
-      );
+      panel.classList.add('auth-dialog__panel--entering');
 
       requestAnimationFrame((): void => {
-        panel.classList.remove(
-          'auth-dialog__panel--entering',
-        );
+        panel.classList.remove('auth-dialog__panel--entering');
       });
     }, 120);
   }
@@ -618,13 +465,10 @@ export function createAuthDialog(
     clearTimeout(closeTimer);
     element.close();
 
-    element.classList.remove(
-      'auth-dialog--open',
-    );
+    element.classList.remove('auth-dialog--open');
 
     isClosing = false;
-    document.body.style.overflow =
-      previousOverflow;
+    document.body.style.overflow = previousOverflow;
 
     previouslyFocused?.focus();
   }
@@ -638,14 +482,9 @@ export function createAuthDialog(
 
     cancelAnimationFrame(openFrame ?? 0);
 
-    element.classList.remove(
-      'auth-dialog--open',
-    );
+    element.classList.remove('auth-dialog--open');
 
-    closeTimer = setTimeout(
-      finishClose,
-      220,
-    );
+    closeTimer = setTimeout(finishClose, 220);
   }
 
   function open(mode: AuthMode): void {
@@ -654,9 +493,7 @@ export function createAuthDialog(
         clearTimeout(closeTimer);
         isClosing = false;
 
-        element.classList.add(
-          'auth-dialog--open',
-        );
+        element.classList.add('auth-dialog--open');
       }
 
       switchMode(mode);
@@ -667,113 +504,72 @@ export function createAuthDialog(
     isClosing = false;
 
     previouslyFocused =
-      document.activeElement instanceof HTMLElement
-        ? document.activeElement
-        : undefined;
+      document.activeElement instanceof HTMLElement ? document.activeElement : undefined;
 
-    previousOverflow =
-      document.body.style.overflow;
+    previousOverflow = document.body.style.overflow;
 
     document.body.style.overflow = 'hidden';
 
     element.showModal();
     element.getBoundingClientRect();
 
-    openFrame = requestAnimationFrame(
-      (): void => {
-        element.classList.add(
-          'auth-dialog--open',
-        );
-      },
-    );
+    openFrame = requestAnimationFrame((): void => {
+      element.classList.add('auth-dialog--open');
+    });
   }
 
-  const requestMode: (
-    mode: AuthMode,
-  ) => void = (mode: AuthMode): void => {
+  const requestMode: (mode: AuthMode) => void = (mode: AuthMode): void => {
     if (mode !== activeMode) {
       options.onModeChange(mode);
     }
   };
 
-  loginTab.addEventListener(
-    'click',
-    (): void => requestMode('login'),
-  );
+  loginTab.addEventListener('click', (): void => requestMode('login'));
 
-  signupTab.addEventListener(
-    'click',
-    (): void => requestMode('signup'),
-  );
+  signupTab.addEventListener('click', (): void => requestMode('signup'));
 
-  footerSwitch.addEventListener(
-    'click',
-    (): void => {
-      requestMode(
-        activeMode === 'login'
-          ? 'signup'
-          : 'login',
-      );
-    },
-  );
+  footerSwitch.addEventListener('click', (): void => {
+    requestMode(activeMode === 'login' ? 'signup' : 'login');
+  });
 
-  form.addEventListener(
-    'submit',
-    (event: SubmitEvent): void => {
-      event.preventDefault();
+  form.addEventListener('submit', (event: SubmitEvent): void => {
+    event.preventDefault();
 
-      for (const fieldView of activeFieldViews) {
-        touchedFields.add(fieldView.name);
-      }
+    for (const fieldView of activeFieldViews) {
+      touchedFields.add(fieldView.name);
+    }
 
-      refreshValidation(true);
-    },
-  );
+    refreshValidation(true);
+  });
 
-  forgotLink.addEventListener(
-    'click',
-    (event: MouseEvent): void => {
-      event.preventDefault();
-    },
-  );
+  forgotLink.addEventListener('click', (event: MouseEvent): void => {
+    event.preventDefault();
+  });
 
-  element.addEventListener(
-    'cancel',
-    (event: Event): void => {
-      event.preventDefault();
+  element.addEventListener('cancel', (event: Event): void => {
+    event.preventDefault();
+    options.onRequestClose();
+  });
+
+  element.addEventListener('click', (event: MouseEvent): void => {
+    const bounds: DOMRect = element.getBoundingClientRect();
+
+    const isBackdropClick: boolean =
+      event.clientX < bounds.left ||
+      event.clientX > bounds.right ||
+      event.clientY < bounds.top ||
+      event.clientY > bounds.bottom;
+
+    if (isBackdropClick) {
       options.onRequestClose();
-    },
-  );
+    }
+  });
 
-  element.addEventListener(
-    'click',
-    (event: MouseEvent): void => {
-      const bounds: DOMRect =
-        element.getBoundingClientRect();
-
-      const isBackdropClick: boolean =
-        event.clientX < bounds.left ||
-        event.clientX > bounds.right ||
-        event.clientY < bounds.top ||
-        event.clientY > bounds.bottom;
-
-      if (isBackdropClick) {
-        options.onRequestClose();
-      }
-    },
-  );
-
-  element.addEventListener(
-    'transitionend',
-    (event: TransitionEvent): void => {
-      if (
-        event.target === element &&
-        event.propertyName === 'opacity'
-      ) {
-        finishClose();
-      }
-    },
-  );
+  element.addEventListener('transitionend', (event: TransitionEvent): void => {
+    if (event.target === element && event.propertyName === 'opacity') {
+      finishClose();
+    }
+  });
 
   renderMode('login');
 

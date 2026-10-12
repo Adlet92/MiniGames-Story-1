@@ -1,10 +1,6 @@
 export type AuthValidationMode = 'login' | 'signup';
 
-export type AuthFieldName =
-  | 'email'
-  | 'username'
-  | 'password'
-  | 'confirmPassword';
+export type AuthFieldName = 'email' | 'username' | 'password' | 'confirmPassword';
 
 export interface AuthFormValues {
   confirmPassword: string;
@@ -13,55 +9,42 @@ export interface AuthFormValues {
   username: string;
 }
 
-export type AuthValidationErrors = Partial<
-  Record<AuthFieldName, string>
->;
+export type AuthValidationErrors = Partial<Record<AuthFieldName, string>>;
 
-const EMAIL_PATTERN: RegExp =
-  /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EMAIL_PATTERN: RegExp = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const USERNAME_PATTERN: RegExp = /^[A-Za-z0-9]+$/;
 const USERNAME_START_PATTERN: RegExp = /^[A-Z]/;
 
 const UPPERCASE_PATTERN: RegExp = /[A-Z]/;
 const DIGIT_PATTERN: RegExp = /\d/;
-const SPECIAL_CHARACTER_PATTERN: RegExp =
-  /[^A-Za-z0-9]/;
+const SPECIAL_CHARACTER_PATTERN: RegExp = /[^A-Za-z0-9]/;
 
 const PASSWORD_ALLOWED_PATTERN: RegExp =
-  /^[\u{21}-\u{7e}]+$/u;
+  /^[\u{21}-\u{7E}]+$/u;
 
 const USERNAME_MIN_LENGTH: number = 2;
 const USERNAME_MAX_LENGTH: number = 30;
 const PASSWORD_MIN_LENGTH: number = 6;
 
-function validateEmail(
-  value: string,
-): string | undefined {
+function validateEmail(value: string): string | undefined {
   const email: string = value.trim();
 
   if (email.length === 0) {
     return 'Email is required.';
   }
 
-  return EMAIL_PATTERN.test(email)
-    ? undefined
-    : 'Enter a valid email address.';
+  return EMAIL_PATTERN.test(email) ? undefined : 'Enter a valid email address.';
 }
 
-function validateUsername(
-  value: string,
-): string | undefined {
+function validateUsername(value: string): string | undefined {
   const username: string = value.trim();
 
   if (username.length === 0) {
     return 'Username is required.';
   }
 
-  if (
-    username.length < USERNAME_MIN_LENGTH ||
-    username.length > USERNAME_MAX_LENGTH
-  ) {
+  if (username.length < USERNAME_MIN_LENGTH || username.length > USERNAME_MAX_LENGTH) {
     return 'Username must contain between 2 and 30 characters.';
   }
 
@@ -74,9 +57,7 @@ function validateUsername(
     : 'Username may contain only English letters and digits.';
 }
 
-function validateLoginPassword(
-  password: string,
-): string | undefined {
+function validateLoginPassword(password: string): string | undefined {
   if (password.length === 0) {
     return 'Password is required.';
   }
@@ -86,9 +67,7 @@ function validateLoginPassword(
     : 'Password must contain at least 6 characters.';
 }
 
-function validateSignupPassword(
-  password: string,
-): string | undefined {
+function validateSignupPassword(password: string): string | undefined {
   if (password.length === 0) {
     return 'Password is required.';
   }
@@ -114,17 +93,12 @@ function validateSignupPassword(
     : 'Password must contain a special character.';
 }
 
-function validateConfirmPassword(
-  password: string,
-  confirmPassword: string,
-): string | undefined {
+function validateConfirmPassword(password: string, confirmPassword: string): string | undefined {
   if (confirmPassword.length === 0) {
     return 'Please confirm your password.';
   }
 
-  return confirmPassword === password
-    ? undefined
-    : 'Passwords do not match.';
+  return confirmPassword === password ? undefined : 'Passwords do not match.';
 }
 
 function assignError(
@@ -143,41 +117,22 @@ export function validateAuthValues(
 ): AuthValidationErrors {
   const errors: AuthValidationErrors = {};
 
-  assignError(
-    errors,
-    'email',
-    validateEmail(values.email),
-  );
+  assignError(errors, 'email', validateEmail(values.email));
 
   if (mode === 'login') {
-    assignError(
-      errors,
-      'password',
-      validateLoginPassword(values.password),
-    );
+    assignError(errors, 'password', validateLoginPassword(values.password));
 
     return errors;
   }
 
-  assignError(
-    errors,
-    'username',
-    validateUsername(values.username),
-  );
+  assignError(errors, 'username', validateUsername(values.username));
 
-  assignError(
-    errors,
-    'password',
-    validateSignupPassword(values.password),
-  );
+  assignError(errors, 'password', validateSignupPassword(values.password));
 
   assignError(
     errors,
     'confirmPassword',
-    validateConfirmPassword(
-      values.password,
-      values.confirmPassword,
-    ),
+    validateConfirmPassword(values.password, values.confirmPassword),
   );
 
   return errors;
