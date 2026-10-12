@@ -20,8 +20,7 @@ const UPPERCASE_PATTERN: RegExp = /[A-Z]/;
 const DIGIT_PATTERN: RegExp = /\d/;
 const SPECIAL_CHARACTER_PATTERN: RegExp = /[^A-Za-z0-9]/;
 
-const PASSWORD_ALLOWED_PATTERN: RegExp =
-  /^[\u{21}-\u{7E}]+$/u;
+const PASSWORD_ALLOWED_PATTERN: RegExp = /^[\u{21}-\u{7E}]+$/u;
 
 const USERNAME_MIN_LENGTH: number = 2;
 const USERNAME_MAX_LENGTH: number = 30;
