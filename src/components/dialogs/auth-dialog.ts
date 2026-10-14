@@ -1,10 +1,18 @@
+import type { User } from 'firebase/auth';
 import type {
   AuthFieldName,
   AuthFormValues,
   AuthValidationErrors,
 } from '../../features/auth/auth-validation';
 import { validateAuthValues } from '../../features/auth/auth-validation';
+import {
+  authenticateWithEmail,
+  getAuthenticationErrorMessage,
+  type EmailAuthenticationRequest,
+} from '../../services/email-auth';
+import { createAppSession, type AppSession } from '../../state/app-session';
 import type { AuthMode } from '../header/header';
+import type { SnackbarVariant } from '../ui/snackbar/snackbar';
 import './auth-dialog.scss';
 
 interface AuthField {
@@ -39,7 +47,9 @@ export interface AuthDialog {
 }
 
 export interface AuthDialogOptions {
+  onAuthenticated: (session: AppSession) => void;
   onModeChange: (mode: AuthMode) => void;
+  onNotify: (message: string, variant: SnackbarVariant) => void;
   onRequestClose: () => void;
 }
 
@@ -306,6 +316,7 @@ export function createAuthDialog(options: AuthDialogOptions): AuthDialog {
   element.append(tabs, panel);
 
   let activeMode: AuthMode = 'login';
+  let isPending: boolean = false;
   let activeFieldViews: AuthFieldView[] = [];
   let isClosing: boolean = false;
   let closeTimer: number | undefined;
@@ -360,9 +371,106 @@ export function createAuthDialog(options: AuthDialogOptions): AuthDialog {
 
     const hasErrors: boolean = Object.keys(errors).length > 0;
 
-    submit.disabled = hasErrors;
+    const isSubmitDisabled: boolean = isPending || hasErrors;
 
-    submit.setAttribute('aria-disabled', String(hasErrors));
+    submit.disabled = isSubmitDisabled;
+
+    submit.setAttribute('aria-disabled', String(isSubmitDisabled));
+  }
+
+  function setPendingState(isNextPending: boolean): void {
+    isPending = isNextPending;
+
+    form.setAttribute('aria-busy', String(isPending));
+
+    for (const fieldView of activeFieldViews) {
+      fieldView.input.disabled = isPending;
+
+      fieldView.inputWrapper.classList.toggle('auth-dialog__input-wrapper--disabled', isPending);
+    }
+
+    rememberInput.disabled = isPending;
+    loginTab.disabled = isPending;
+    signupTab.disabled = isPending;
+    google.disabled = isPending;
+    footerSwitch.disabled = isPending;
+
+    forgotLink.setAttribute('aria-disabled', String(isPending));
+
+    if (isPending) {
+      forgotLink.tabIndex = -1;
+    } else {
+      forgotLink.removeAttribute('tabindex');
+    }
+
+    submit.textContent = isPending ? 'Please wait…' : AUTH_CONTENT[activeMode].submitLabel;
+
+    refreshValidation(false);
+  }
+
+  async function submitAuthentication(event: SubmitEvent): Promise<void> {
+    event.preventDefault();
+
+    if (isPending) {
+      return;
+    }
+
+    for (const fieldView of activeFieldViews) {
+      touchedFields.add(fieldView.name);
+    }
+
+    refreshValidation(true);
+
+    const values: AuthFormValues = getFormValues();
+
+    const errors: AuthValidationErrors = validateAuthValues(activeMode, values);
+
+    if (Object.keys(errors).length > 0) {
+      return;
+    }
+
+    const request: EmailAuthenticationRequest =
+      activeMode === 'login'
+        ? {
+            email: values.email,
+            mode: 'login',
+            password: values.password,
+          }
+        : {
+            email: values.email,
+            mode: 'signup',
+            password: values.password,
+            username: values.username,
+          };
+
+    setPendingState(true);
+
+    let session: AppSession;
+
+    try {
+      const user: User = await authenticateWithEmail(request);
+
+      session = createAppSession(user);
+    } catch (error: unknown) {
+      setPendingState(false);
+
+      options.onNotify(getAuthenticationErrorMessage(error), 'error');
+
+      return;
+    }
+
+    setPendingState(false);
+
+    options.onAuthenticated(session);
+
+    options.onNotify(
+      activeMode === 'login'
+        ? `Welcome back, ${session.displayName}!`
+        : `Welcome, ${session.displayName}!`,
+      'success',
+    );
+
+    closeDialog();
   }
 
   function bindFieldValidation(fieldView: AuthFieldView): void {
@@ -434,7 +542,7 @@ export function createAuthDialog(options: AuthDialogOptions): AuthDialog {
   }
 
   function switchMode(mode: AuthMode): void {
-    if (mode === activeMode) {
+    if (isPending || mode === activeMode) {
       return;
     }
 
@@ -474,10 +582,9 @@ export function createAuthDialog(options: AuthDialogOptions): AuthDialog {
   }
 
   function closeDialog(): void {
-    if (isClosing || !element.open) {
+    if (isPending || isClosing || !element.open) {
       return;
     }
-
     isClosing = true;
 
     cancelAnimationFrame(openFrame ?? 0);
@@ -519,7 +626,7 @@ export function createAuthDialog(options: AuthDialogOptions): AuthDialog {
   }
 
   const requestMode: (mode: AuthMode) => void = (mode: AuthMode): void => {
-    if (mode !== activeMode) {
+    if (!isPending && mode !== activeMode) {
       options.onModeChange(mode);
     }
   };
@@ -533,22 +640,25 @@ export function createAuthDialog(options: AuthDialogOptions): AuthDialog {
   });
 
   form.addEventListener('submit', (event: SubmitEvent): void => {
-    event.preventDefault();
-
-    for (const fieldView of activeFieldViews) {
-      touchedFields.add(fieldView.name);
-    }
-
-    refreshValidation(true);
+    void submitAuthentication(event);
   });
 
   forgotLink.addEventListener('click', (event: MouseEvent): void => {
     event.preventDefault();
+
+    if (isPending) {
+      return;
+    }
+
+    options.onNotify('Password recovery is not available yet.', 'error');
   });
 
   element.addEventListener('cancel', (event: Event): void => {
     event.preventDefault();
-    options.onRequestClose();
+
+    if (!isPending) {
+      options.onRequestClose();
+    }
   });
 
   element.addEventListener('click', (event: MouseEvent): void => {
@@ -560,7 +670,7 @@ export function createAuthDialog(options: AuthDialogOptions): AuthDialog {
       event.clientY < bounds.top ||
       event.clientY > bounds.bottom;
 
-    if (isBackdropClick) {
+    if (isBackdropClick && !isPending) {
       options.onRequestClose();
     }
   });

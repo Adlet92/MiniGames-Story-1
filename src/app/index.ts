@@ -24,6 +24,9 @@ import type {
 } from './router';
 import { createRouter } from './router';
 
+import { initializeFirebase } from '../services/firebase';
+import type { AppSession } from '../state/app-session';
+
 function toLibraryState(state: AppRouteState): LibraryViewState {
   return {
     category: state.category,
@@ -41,6 +44,8 @@ function toAuthMode(mode: AuthRouteMode): AuthMode {
 }
 
 function initializeApp(): void {
+  initializeFirebase();
+
   const app: HTMLDivElement = document.createElement('div');
   app.id = 'app';
   const outlet: HTMLDivElement = document.createElement('div');
@@ -48,7 +53,17 @@ function initializeApp(): void {
   const router: AppRouter = createRouter();
   const snackbar: Snackbar = createSnackbar();
   const authDialog: AuthDialog = createAuthDialog({
+    onAuthenticated: (session: AppSession): void => {
+      app.classList.add('app--authenticated');
+      app.dataset.userEmail = session.email;
+      app.dataset.userName = session.displayName;
+
+      router.closeDialog();
+    },
+
     onModeChange: (mode: AuthMode): void => router.openAuth(toAuthRouteMode(mode)),
+
+    onNotify: snackbar.show,
     onRequestClose: router.closeDialog,
   });
   const gameDetailsDialog: GameDetailsDialog = createGameDetailsDialog({

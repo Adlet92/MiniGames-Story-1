@@ -10,4 +10,8 @@ Automatically fix supported lint issues:
 
 npm run lint:fix
 
-Ready for penalty for after deadline changes.
+## Application session
+
+The authenticated client session is stored in localStorage under:
+
+`minigames:adlet92:app-session`

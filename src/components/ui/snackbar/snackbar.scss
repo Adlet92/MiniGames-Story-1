@@ -3,9 +3,12 @@
 .snackbar-region {
   position: fixed;
   z-index: t.$snackbar-layer;
-  right: t.$size-3;
-  bottom: t.$size-3;
+  inset: auto t.$size-3 t.$size-3 auto;
   width: min(t.$snackbar-width, calc(100vw - #{t.$size-4}));
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
   pointer-events: none;
 }
 
@@ -70,8 +73,7 @@
 
 @media (max-width: t.$breakpoint-mobile) {
   .snackbar-region {
-    right: t.$size-2;
-    bottom: t.$size-2;
+    inset: auto t.$size-2 t.$size-2 auto;
   }
 }
 
