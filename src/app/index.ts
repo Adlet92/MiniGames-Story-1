@@ -25,6 +25,7 @@ import type {
 import { createRouter } from './router';
 
 import { initializeFirebase } from '../services/firebase';
+import type { AppSession } from '../state/app-session';
 
 function toLibraryState(state: AppRouteState): LibraryViewState {
   return {
@@ -51,10 +52,23 @@ function initializeApp(): void {
   outlet.id = 'page-content';
   const router: AppRouter = createRouter();
   const snackbar: Snackbar = createSnackbar();
-  const authDialog: AuthDialog = createAuthDialog({
-    onModeChange: (mode: AuthMode): void => router.openAuth(toAuthRouteMode(mode)),
-    onRequestClose: router.closeDialog,
-  });
+ const authDialog: AuthDialog = createAuthDialog({
+  onAuthenticated: (
+    session: AppSession,
+  ): void => {
+    app.classList.add('app--authenticated');
+    app.dataset.userEmail = session.email;
+    app.dataset.userName = session.displayName;
+
+    router.closeDialog();
+  },
+
+  onModeChange: (mode: AuthMode): void =>
+    router.openAuth(toAuthRouteMode(mode)),
+
+  onNotify: snackbar.show,
+  onRequestClose: router.closeDialog,
+});
   const gameDetailsDialog: GameDetailsDialog = createGameDetailsDialog({
     onNotify: snackbar.show,
     onRequestClose: router.closeDialog,

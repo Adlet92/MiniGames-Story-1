@@ -344,6 +344,28 @@
     cursor: not-allowed;
   }
 
+  .auth-dialog__form[aria-busy='true'] {
+  cursor: progress;
+}
+
+.auth-dialog__input-wrapper--disabled {
+  opacity: t.$auth-validation-disabled-opacity;
+  cursor: progress;
+}
+
+.auth-dialog__tab:disabled,
+.auth-dialog__google:disabled,
+.auth-dialog__footer-switch:disabled {
+  opacity: t.$auth-validation-disabled-opacity;
+  cursor: not-allowed;
+}
+
+.auth-dialog__login-options
+  a[aria-disabled='true'] {
+  opacity: t.$auth-validation-disabled-opacity;
+  pointer-events: none;
+}
+
   @media (max-width: t.$breakpoint-mobile) {
     max-width: calc(100vw - (t.$size-1 * 3));
     max-height: calc(100dvh - (t.$size-1 * 3));
