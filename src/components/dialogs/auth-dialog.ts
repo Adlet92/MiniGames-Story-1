@@ -10,6 +10,10 @@ import {
   getAuthenticationErrorMessage,
   type EmailAuthenticationRequest,
 } from '../../services/email-auth';
+import {
+  authenticateWithGoogle,
+  getGoogleAuthenticationErrorMessage,
+} from '../../services/google-auth';
 import { createAppSession, type AppSession } from '../../state/app-session';
 import type { AuthMode } from '../header/header';
 import type { SnackbarVariant } from '../ui/snackbar/snackbar';
@@ -405,6 +409,14 @@ export function createAuthDialog(options: AuthDialogOptions): AuthDialog {
 
     submit.textContent = isPending ? 'Please wait…' : AUTH_CONTENT[activeMode].submitLabel;
 
+    googleLabel.textContent = isPending
+      ? 'Connecting…'
+      : activeMode === 'login'
+        ? 'Login with Google'
+        : 'Sign up with Google';
+
+    refreshValidation(false);
+
     refreshValidation(false);
   }
 
@@ -469,6 +481,36 @@ export function createAuthDialog(options: AuthDialogOptions): AuthDialog {
         : `Welcome, ${session.displayName}!`,
       'success',
     );
+
+    closeDialog();
+  }
+
+  async function submitGoogleAuthentication(): Promise<void> {
+    if (isPending) {
+      return;
+    }
+
+    setPendingState(true);
+
+    let session: AppSession;
+
+    try {
+      const user: User = await authenticateWithGoogle();
+
+      session = createAppSession(user);
+    } catch (error: unknown) {
+      setPendingState(false);
+
+      options.onNotify(getGoogleAuthenticationErrorMessage(error), 'error');
+
+      return;
+    }
+
+    setPendingState(false);
+
+    options.onAuthenticated(session);
+
+    options.onNotify(`Welcome, ${session.displayName}!`, 'success');
 
     closeDialog();
   }
@@ -641,6 +683,9 @@ export function createAuthDialog(options: AuthDialogOptions): AuthDialog {
 
   form.addEventListener('submit', (event: SubmitEvent): void => {
     void submitAuthentication(event);
+  });
+  google.addEventListener('click', (): void => {
+    void submitGoogleAuthentication();
   });
 
   forgotLink.addEventListener('click', (event: MouseEvent): void => {
