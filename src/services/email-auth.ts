@@ -65,11 +65,8 @@ export async function authenticateWithEmail(request: EmailAuthenticationRequest)
   return credential.user;
 }
 
-export function getAuthenticationErrorMessage(
-  error: unknown,
-): string {
+export function getAuthenticationErrorMessage(error: unknown): string {
   return error instanceof FirebaseError
-    ? (AUTHENTICATION_ERROR_MESSAGES[error.code] ??
-        'Authentication failed. Please try again.')
+    ? (AUTHENTICATION_ERROR_MESSAGES[error.code] ?? 'Authentication failed. Please try again.')
     : 'Authentication failed. Please try again.';
 }
