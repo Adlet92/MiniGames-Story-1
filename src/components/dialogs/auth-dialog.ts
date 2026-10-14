@@ -5,12 +5,14 @@ import type {
   AuthValidationErrors,
 } from '../../features/auth/auth-validation';
 import { validateAuthValues } from '../../features/auth/auth-validation';
-import { authenticateWithEmail, getAuthenticationErrorMessage, type EmailAuthenticationRequest } from '../../services/email-auth';
+import {
+  authenticateWithEmail,
+  getAuthenticationErrorMessage,
+  type EmailAuthenticationRequest,
+} from '../../services/email-auth';
 import { createAppSession, type AppSession } from '../../state/app-session';
 import type { AuthMode } from '../header/header';
-import type {
-  SnackbarVariant,
-} from '../ui/snackbar/snackbar';
+import type { SnackbarVariant } from '../ui/snackbar/snackbar';
 import './auth-dialog.scss';
 
 interface AuthField {
@@ -47,10 +49,7 @@ export interface AuthDialog {
 export interface AuthDialogOptions {
   onAuthenticated: (session: AppSession) => void;
   onModeChange: (mode: AuthMode) => void;
-  onNotify: (
-    message: string,
-    variant: SnackbarVariant,
-  ) => void;
+  onNotify: (message: string, variant: SnackbarVariant) => void;
   onRequestClose: () => void;
 }
 
@@ -370,134 +369,109 @@ export function createAuthDialog(options: AuthDialogOptions): AuthDialog {
       updateFieldValidation(fieldView, errorMessage);
     }
 
-    const hasErrors: boolean =
-  Object.keys(errors).length > 0;
+    const hasErrors: boolean = Object.keys(errors).length > 0;
 
-const isSubmitDisabled: boolean =
-  isPending || hasErrors;
+    const isSubmitDisabled: boolean = isPending || hasErrors;
 
-submit.disabled = isSubmitDisabled;
+    submit.disabled = isSubmitDisabled;
 
-submit.setAttribute(
-  'aria-disabled',
-  String(isSubmitDisabled),
-);
+    submit.setAttribute('aria-disabled', String(isSubmitDisabled));
   }
 
-function setPendingState(
-  isNextPending: boolean,
-): void {
-  isPending = isNextPending;
+  function setPendingState(isNextPending: boolean): void {
+    isPending = isNextPending;
 
-  form.setAttribute(
-    'aria-busy',
-    String(isPending),
-  );
+    form.setAttribute('aria-busy', String(isPending));
 
-  for (const fieldView of activeFieldViews) {
-    fieldView.input.disabled = isPending;
+    for (const fieldView of activeFieldViews) {
+      fieldView.input.disabled = isPending;
 
-    fieldView.inputWrapper.classList.toggle(
-      'auth-dialog__input-wrapper--disabled',
-      isPending,
-    );
+      fieldView.inputWrapper.classList.toggle('auth-dialog__input-wrapper--disabled', isPending);
+    }
+
+    rememberInput.disabled = isPending;
+    loginTab.disabled = isPending;
+    signupTab.disabled = isPending;
+    google.disabled = isPending;
+    footerSwitch.disabled = isPending;
+
+    forgotLink.setAttribute('aria-disabled', String(isPending));
+
+    if (isPending) {
+      forgotLink.tabIndex = -1;
+    } else {
+      forgotLink.removeAttribute('tabindex');
+    }
+
+    submit.textContent = isPending ? 'Please wait…' : AUTH_CONTENT[activeMode].submitLabel;
+
+    refreshValidation(false);
   }
 
-  rememberInput.disabled = isPending;
-  loginTab.disabled = isPending;
-  signupTab.disabled = isPending;
-  google.disabled = isPending;
-  footerSwitch.disabled = isPending;
+  async function submitAuthentication(event: SubmitEvent): Promise<void> {
+    event.preventDefault();
 
-  forgotLink.setAttribute(
-    'aria-disabled',
-    String(isPending),
-  );
+    if (isPending) {
+      return;
+    }
 
-  if (isPending) {
-    forgotLink.tabIndex = -1;
-  } else {
-    forgotLink.removeAttribute('tabindex');
-  }
+    for (const fieldView of activeFieldViews) {
+      touchedFields.add(fieldView.name);
+    }
 
-  submit.textContent = isPending
-    ? 'Please wait…'
-    : AUTH_CONTENT[activeMode].submitLabel;
+    refreshValidation(true);
 
-  refreshValidation(false);
-}
+    const values: AuthFormValues = getFormValues();
 
-  async function submitAuthentication(
-  event: SubmitEvent,
-): Promise<void> {
-  event.preventDefault();
+    const errors: AuthValidationErrors = validateAuthValues(activeMode, values);
 
-  if (isPending) {
-    return;
-  }
+    if (Object.keys(errors).length > 0) {
+      return;
+    }
 
-  for (const fieldView of activeFieldViews) {
-    touchedFields.add(fieldView.name);
-  }
+    const request: EmailAuthenticationRequest =
+      activeMode === 'login'
+        ? {
+            email: values.email,
+            mode: 'login',
+            password: values.password,
+          }
+        : {
+            email: values.email,
+            mode: 'signup',
+            password: values.password,
+            username: values.username,
+          };
 
-  refreshValidation(true);
+    setPendingState(true);
 
-  const values: AuthFormValues = getFormValues();
+    let session: AppSession;
 
-  const errors: AuthValidationErrors =
-    validateAuthValues(activeMode, values);
+    try {
+      const user: User = await authenticateWithEmail(request);
 
-  if (Object.keys(errors).length > 0) {
-    return;
-  }
+      session = createAppSession(user);
+    } catch (error: unknown) {
+      setPendingState(false);
 
-  const request: EmailAuthenticationRequest =
-    activeMode === 'login'
-      ? {
-          email: values.email,
-          mode: 'login',
-          password: values.password,
-        }
-      : {
-          email: values.email,
-          mode: 'signup',
-          password: values.password,
-          username: values.username,
-        };
+      options.onNotify(getAuthenticationErrorMessage(error), 'error');
 
-  setPendingState(true);
+      return;
+    }
 
-  let session: AppSession;
-
-  try {
-    const user: User =
-      await authenticateWithEmail(request);
-
-    session = createAppSession(user);
-  } catch (error: unknown) {
     setPendingState(false);
 
+    options.onAuthenticated(session);
+
     options.onNotify(
-      getAuthenticationErrorMessage(error),
-      'error',
+      activeMode === 'login'
+        ? `Welcome back, ${session.displayName}!`
+        : `Welcome, ${session.displayName}!`,
+      'success',
     );
 
-    return;
+    closeDialog();
   }
-
-  setPendingState(false);
-
-  options.onAuthenticated(session);
-
-  options.onNotify(
-    activeMode === 'login'
-      ? `Welcome back, ${session.displayName}!`
-      : `Welcome, ${session.displayName}!`,
-    'success',
-  );
-
-  closeDialog();
-}
 
   function bindFieldValidation(fieldView: AuthFieldView): void {
     const validateField: () => void = (): void => {
@@ -608,11 +582,7 @@ function setPendingState(
   }
 
   function closeDialog(): void {
-    if (
-      isPending ||
-      isClosing ||
-      !element.open
-    ) {
+    if (isPending || isClosing || !element.open) {
       return;
     }
     isClosing = true;
@@ -655,16 +625,11 @@ function setPendingState(
     });
   }
 
-const requestMode: (
-  mode: AuthMode,
-) => void = (mode: AuthMode): void => {
-  if (
-    !isPending &&
-    mode !== activeMode
-  ) {
-    options.onModeChange(mode);
-  }
-};
+  const requestMode: (mode: AuthMode) => void = (mode: AuthMode): void => {
+    if (!isPending && mode !== activeMode) {
+      options.onModeChange(mode);
+    }
+  };
 
   loginTab.addEventListener('click', (): void => requestMode('login'));
 
@@ -674,39 +639,27 @@ const requestMode: (
     requestMode(activeMode === 'login' ? 'signup' : 'login');
   });
 
-  form.addEventListener(
-  'submit',
-  (event: SubmitEvent): void => {
+  form.addEventListener('submit', (event: SubmitEvent): void => {
     void submitAuthentication(event);
-  },
-);
+  });
 
-  forgotLink.addEventListener(
-  'click',
-  (event: MouseEvent): void => {
+  forgotLink.addEventListener('click', (event: MouseEvent): void => {
     event.preventDefault();
 
     if (isPending) {
       return;
     }
 
-    options.onNotify(
-      'Password recovery is not available yet.',
-      'error',
-    );
-  },
-);
+    options.onNotify('Password recovery is not available yet.', 'error');
+  });
 
-element.addEventListener(
-  'cancel',
-  (event: Event): void => {
+  element.addEventListener('cancel', (event: Event): void => {
     event.preventDefault();
 
     if (!isPending) {
       options.onRequestClose();
     }
-  },
-);
+  });
 
   element.addEventListener('click', (event: MouseEvent): void => {
     const bounds: DOMRect = element.getBoundingClientRect();
@@ -718,8 +671,8 @@ element.addEventListener(
       event.clientY > bounds.bottom;
 
     if (isBackdropClick && !isPending) {
-  options.onRequestClose();
-}
+      options.onRequestClose();
+    }
   });
 
   element.addEventListener('transitionend', (event: TransitionEvent): void => {

@@ -52,23 +52,20 @@ function initializeApp(): void {
   outlet.id = 'page-content';
   const router: AppRouter = createRouter();
   const snackbar: Snackbar = createSnackbar();
- const authDialog: AuthDialog = createAuthDialog({
-  onAuthenticated: (
-    session: AppSession,
-  ): void => {
-    app.classList.add('app--authenticated');
-    app.dataset.userEmail = session.email;
-    app.dataset.userName = session.displayName;
+  const authDialog: AuthDialog = createAuthDialog({
+    onAuthenticated: (session: AppSession): void => {
+      app.classList.add('app--authenticated');
+      app.dataset.userEmail = session.email;
+      app.dataset.userName = session.displayName;
 
-    router.closeDialog();
-  },
+      router.closeDialog();
+    },
 
-  onModeChange: (mode: AuthMode): void =>
-    router.openAuth(toAuthRouteMode(mode)),
+    onModeChange: (mode: AuthMode): void => router.openAuth(toAuthRouteMode(mode)),
 
-  onNotify: snackbar.show,
-  onRequestClose: router.closeDialog,
-});
+    onNotify: snackbar.show,
+    onRequestClose: router.closeDialog,
+  });
   const gameDetailsDialog: GameDetailsDialog = createGameDetailsDialog({
     onNotify: snackbar.show,
     onRequestClose: router.closeDialog,
