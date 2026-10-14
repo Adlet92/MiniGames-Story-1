@@ -52,30 +52,47 @@ function initializeApp(): void {
   outlet.id = 'page-content';
   const router: AppRouter = createRouter();
   const snackbar: Snackbar = createSnackbar();
-  const authDialog: AuthDialog = createAuthDialog({
-    onAuthenticated: (session: AppSession): void => {
-      app.classList.add('app--authenticated');
-      app.dataset.userEmail = session.email;
-      app.dataset.userName = session.displayName;
 
-      router.closeDialog();
-    },
+  const headerOptions: HeaderOptions = {
+    activePage: router.getState().page,
+    onAuth: (mode: AuthMode): void => router.openAuth(toAuthRouteMode(mode)),
+    onNavigate: router.navigate,
+  };
+
+  let header: HTMLElement = createHeader(headerOptions);
+
+  const applyAuthenticatedSession: (session: AppSession) => void = (session: AppSession): void => {
+    app.classList.add('app--authenticated');
+    app.dataset.userEmail = session.email;
+    app.dataset.userName = session.displayName;
+
+    const authenticatedHeaderOptions: HeaderOptions = {
+      ...headerOptions,
+      activePage: router.getState().page,
+      session,
+    };
+
+    const authenticatedHeader: HTMLElement = createHeader(authenticatedHeaderOptions);
+
+    header.replaceWith(authenticatedHeader);
+    header = authenticatedHeader;
+
+    router.closeDialog();
+  };
+
+  const authDialog: AuthDialog = createAuthDialog({
+    onAuthenticated: applyAuthenticatedSession,
 
     onModeChange: (mode: AuthMode): void => router.openAuth(toAuthRouteMode(mode)),
 
     onNotify: snackbar.show,
     onRequestClose: router.closeDialog,
   });
+
   const gameDetailsDialog: GameDetailsDialog = createGameDetailsDialog({
     onNotify: snackbar.show,
     onRequestClose: router.closeDialog,
   });
-  const headerOptions: HeaderOptions = {
-    activePage: router.getState().page,
-    onAuth: (mode: AuthMode): void => router.openAuth(toAuthRouteMode(mode)),
-    onNavigate: router.navigate,
-  };
-  const header: HTMLElement = createHeader(headerOptions);
 
   let renderedPage: AppPage | undefined;
   let libraryPage: LibraryPageController | undefined;
