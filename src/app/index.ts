@@ -24,6 +24,8 @@ import type {
 } from './router';
 import { createRouter } from './router';
 
+import { initializeFirebase } from '../services/firebase';
+
 function toLibraryState(state: AppRouteState): LibraryViewState {
   return {
     category: state.category,
@@ -41,6 +43,9 @@ function toAuthMode(mode: AuthRouteMode): AuthMode {
 }
 
 function initializeApp(): void {
+
+  initializeFirebase();
+
   const app: HTMLDivElement = document.createElement('div');
   app.id = 'app';
   const outlet: HTMLDivElement = document.createElement('div');

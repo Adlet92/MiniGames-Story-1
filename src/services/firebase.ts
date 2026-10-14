@@ -1,11 +1,5 @@
-import type {
-  FirebaseApp,
-  FirebaseOptions,
-} from 'firebase/app';
-import {
-  getApps,
-  initializeApp,
-} from 'firebase/app';
+import type { FirebaseApp, FirebaseOptions } from 'firebase/app';
+import { getApps, initializeApp } from 'firebase/app';
 import type { Auth } from 'firebase/auth';
 import { getAuth } from 'firebase/auth';
 
@@ -22,19 +16,11 @@ export interface FirebaseServices {
   auth: Auth;
 }
 
-function getRequiredEnvironmentVariable(
-  variableName: FirebaseEnvironmentVariable,
-): string {
-  const value: string | undefined =
-    import.meta.env[variableName];
+function getRequiredEnvironmentVariable(variableName: FirebaseEnvironmentVariable): string {
+  const value: string | undefined = import.meta.env[variableName];
 
-  if (
-    value === undefined ||
-    value.trim().length === 0
-  ) {
-    throw new Error(
-      `Missing Firebase environment variable: ${variableName}`,
-    );
+  if (value === undefined || value.trim().length === 0) {
+    throw new Error(`Missing Firebase environment variable: ${variableName}`);
   }
 
   return value;
@@ -42,42 +28,26 @@ function getRequiredEnvironmentVariable(
 
 function createFirebaseOptions(): FirebaseOptions {
   return {
-    apiKey: getRequiredEnvironmentVariable(
-      'VITE_FIREBASE_API_KEY',
-    ),
+    apiKey: getRequiredEnvironmentVariable('VITE_FIREBASE_API_KEY'),
 
-    appId: getRequiredEnvironmentVariable(
-      'VITE_FIREBASE_APP_ID',
-    ),
+    appId: getRequiredEnvironmentVariable('VITE_FIREBASE_APP_ID'),
 
-    authDomain: getRequiredEnvironmentVariable(
-      'VITE_FIREBASE_AUTH_DOMAIN',
-    ),
+    authDomain: getRequiredEnvironmentVariable('VITE_FIREBASE_AUTH_DOMAIN'),
 
-    messagingSenderId:
-      getRequiredEnvironmentVariable(
-        'VITE_FIREBASE_MESSAGING_SENDER_ID',
-      ),
+    messagingSenderId: getRequiredEnvironmentVariable('VITE_FIREBASE_MESSAGING_SENDER_ID'),
 
-    projectId: getRequiredEnvironmentVariable(
-      'VITE_FIREBASE_PROJECT_ID',
-    ),
+    projectId: getRequiredEnvironmentVariable('VITE_FIREBASE_PROJECT_ID'),
 
-    storageBucket: getRequiredEnvironmentVariable(
-      'VITE_FIREBASE_STORAGE_BUCKET',
-    ),
+    storageBucket: getRequiredEnvironmentVariable('VITE_FIREBASE_STORAGE_BUCKET'),
   };
 }
 
 export function initializeFirebase(): FirebaseServices {
   const registeredApps: FirebaseApp[] = getApps();
 
-  const registeredApp: FirebaseApp | undefined =
-    registeredApps.at(0);
+  const registeredApp: FirebaseApp | undefined = registeredApps.at(0);
 
-  const app: FirebaseApp =
-    registeredApp ??
-    initializeApp(createFirebaseOptions());
+  const app: FirebaseApp = registeredApp ?? initializeApp(createFirebaseOptions());
 
   const auth: Auth = getAuth(app);
 
