@@ -1,9 +1,11 @@
 import type { AppPage } from '../../app/router';
 import brandUrl from '../../assets/icons/brand.png';
 import burgerUrl from '../../assets/icons/burger.svg';
+import type { AppSession } from '../../state/app-session';
 import './header.scss';
 import type { MobileMenu } from './mobile-menu';
 import { createMobileMenu } from './mobile-menu';
+import { createProfileView } from './profile-view';
 
 export type AuthMode = 'login' | 'signup';
 
@@ -11,6 +13,7 @@ export interface HeaderOptions {
   activePage: AppPage;
   onAuth: (mode: AuthMode) => void;
   onNavigate: (page: AppPage) => void;
+  session?: AppSession;
 }
 
 interface NavigationItem {
@@ -101,10 +104,15 @@ export function createHeader(options: HeaderOptions): HTMLElement {
 
   const buttons: HTMLDivElement = document.createElement('div');
   buttons.className = 'header__buttons';
-  buttons.append(
-    createAuthButton('Log In', 'login', options),
-    createAuthButton('Sign Up', 'signup', options),
-  );
+  const controls: HTMLElement[] =
+    options.session === undefined
+      ? [
+          createAuthButton('Log In', 'login', options),
+          createAuthButton('Sign Up', 'signup', options),
+        ]
+      : [createProfileView(options.session, 'header')];
+
+  buttons.append(...controls);
 
   const burger: HTMLButtonElement = document.createElement('button');
   burger.type = 'button';

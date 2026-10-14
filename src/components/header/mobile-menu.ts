@@ -2,6 +2,7 @@ import type { AppPage } from '../../app/router';
 import brandUrl from '../../assets/icons/brand.png';
 import type { AuthMode, HeaderOptions } from './header';
 import './mobile-menu.scss';
+import { createProfileView } from './profile-view';
 
 export interface MobileMenu {
   element: HTMLDialogElement;
@@ -138,7 +139,12 @@ export function createMobileMenu(trigger: HTMLButtonElement, options: HeaderOpti
     return button;
   }
 
-  buttons.append(createAuthButton('Log In', 'login'), createAuthButton('Sign Up', 'signup'));
+  const controls: HTMLElement[] =
+    options.session === undefined
+      ? [createAuthButton('Log In', 'login'), createAuthButton('Sign Up', 'signup')]
+      : [createProfileView(options.session, 'mobile-menu')];
+
+  buttons.append(...controls);
   close.addEventListener('click', closeMenu);
   brand.addEventListener('click', (event: MouseEvent): void => {
     event.preventDefault();
