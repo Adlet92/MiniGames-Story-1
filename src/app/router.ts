@@ -23,7 +23,7 @@ export interface AppRouter {
   closeDialog: () => void;
   getState: () => AppRouteState;
   navigate: (page: AppPage) => void;
-  openAuth: (mode: AuthRouteMode) => void;
+  openAuth: (mode: AuthRouteMode, shouldPreserveGame?: boolean) => void;
   openGame: (gameSlug: string) => void;
   start: () => void;
   subscribe: (listener: RouteListener) => () => void;
@@ -46,13 +46,16 @@ const CATEGORY_VALUES: ReadonlySet<string> = new Set<string>([
   'strategy',
   'arcade',
 ]);
+
 const SORT_VALUES: ReadonlySet<string> = new Set<string>([
   'rating-desc',
   'rating-asc',
   'name-asc',
   'name-desc',
 ]);
+
 const GAME_SLUG_PATTERN: RegExp = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
 const FIRST_PAGE: number = 1;
 
 function isCategorySlug(value: string | null): value is CategorySlug {
@@ -77,9 +80,13 @@ function readGameSlug(value: string | null): string | undefined {
 
 export function parseRoute(url: URL = new URL(location.href)): AppRouteState {
   const page: AppPage = url.pathname === '/library' ? 'library' : 'home';
+
   const categoryValue: string | null = url.searchParams.get('category');
+
   const sortValue: string | null = url.searchParams.get('sort');
+
   const authMode: AuthRouteMode | undefined = readAuthMode(url.searchParams.get('auth'));
+
   const gameSlug: string | undefined = readGameSlug(url.searchParams.get('game'));
 
   return {
@@ -87,13 +94,14 @@ export function parseRoute(url: URL = new URL(location.href)): AppRouteState {
     category: isCategorySlug(categoryValue) ? categoryValue : 'all',
     sort: isGameSort(sortValue) ? sortValue : DEFAULT_GAME_SORT,
     pageNumber: readPageNumber(url.searchParams.get('page')),
-    ...(gameSlug !== undefined && authMode === undefined && { gameSlug }),
+    ...(gameSlug !== undefined && { gameSlug }),
     ...(authMode !== undefined && { authMode }),
   };
 }
 
 export function buildRouteUrl(state: AppRouteState): string {
   const path: string = state.page === 'library' ? '/library' : '/';
+
   const parameters: URLSearchParams = new URLSearchParams();
 
   if (state.page === 'library') {
@@ -104,11 +112,14 @@ export function buildRouteUrl(state: AppRouteState): string {
 
   if (state.gameSlug !== undefined) {
     parameters.set('game', state.gameSlug);
-  } else if (state.authMode !== undefined) {
+  }
+
+  if (state.authMode !== undefined) {
     parameters.set('auth', state.authMode);
   }
 
   const query: string = parameters.toString();
+
   return query.length > 0 ? `${path}?${query}` : path;
 }
 
@@ -124,9 +135,23 @@ function hasSameState(first: AppRouteState, second: AppRouteState): boolean {
 }
 
 function withoutDialogs(state: AppRouteState): AppRouteState {
-  const nextState: AppRouteState = { ...state };
+  const nextState: AppRouteState = {
+    ...state,
+  };
+
   delete nextState.gameSlug;
   delete nextState.authMode;
+
+  return nextState;
+}
+
+function withoutAuthDialog(state: AppRouteState): AppRouteState {
+  const nextState: AppRouteState = {
+    ...state,
+  };
+
+  delete nextState.authMode;
+
   return nextState;
 }
 
@@ -136,6 +161,7 @@ function getCurrentHistoryState(): HistoryEntryState {
 
 export function createRouter(): AppRouter {
   const listeners: Set<RouteListener> = new Set<RouteListener>();
+
   let currentState: AppRouteState = parseRoute();
   let hasStarted: boolean = false;
 
@@ -159,6 +185,7 @@ export function createRouter(): AppRouter {
     }
 
     currentState = nextState;
+
     const url: string = buildRouteUrl(nextState);
 
     if (mode === 'replace') {
@@ -170,7 +197,9 @@ export function createRouter(): AppRouter {
     notify();
   };
 
-  const getState: () => AppRouteState = (): AppRouteState => ({ ...currentState });
+  const getState: () => AppRouteState = (): AppRouteState => ({
+    ...currentState,
+  });
 
   const navigate: (page: AppPage) => void = (page: AppPage): void => {
     const nextState: AppRouteState = {
@@ -179,6 +208,7 @@ export function createRouter(): AppRouter {
       sort: DEFAULT_GAME_SORT,
       pageNumber: FIRST_PAGE,
     };
+
     commit(nextState);
   };
 
@@ -190,12 +220,14 @@ export function createRouter(): AppRouter {
     }
 
     const hasFilterChange: boolean = update.category !== undefined || update.sort !== undefined;
+
     const nextState: AppRouteState = {
       ...currentState,
       category: update.category ?? currentState.category,
       sort: update.sort ?? currentState.sort,
       pageNumber: hasFilterChange ? FIRST_PAGE : (update.pageNumber ?? currentState.pageNumber),
     };
+
     commit(nextState);
   };
 
@@ -207,10 +239,19 @@ export function createRouter(): AppRouter {
     }
 
     const baseState: AppRouteState = withoutDialogs(currentState);
+
     const returnUrl: string = buildRouteUrl(baseState);
+
     const mode: 'push' | 'replace' = currentState.gameSlug === undefined ? 'push' : 'replace';
+
     const historyState: HistoryEntryState =
-      mode === 'replace' ? getCurrentHistoryState() : { dialogEntry: true, returnUrl };
+      mode === 'replace'
+        ? getCurrentHistoryState()
+        : {
+            dialogEntry: true,
+            returnUrl,
+          };
+
     commit(
       {
         ...baseState,
@@ -221,13 +262,29 @@ export function createRouter(): AppRouter {
     );
   };
 
-  const openAuth: (mode: AuthRouteMode) => void = (mode: AuthRouteMode): void => {
-    const baseState: AppRouteState = withoutDialogs(currentState);
+  const openAuth: (mode: AuthRouteMode, shouldPreserveGame?: boolean) => void = (
+    mode: AuthRouteMode,
+    shouldPreserveGame: boolean = false,
+  ): void => {
+    const canPreserveGame: boolean = shouldPreserveGame && currentState.gameSlug !== undefined;
+
+    const baseState: AppRouteState = canPreserveGame
+      ? withoutAuthDialog(currentState)
+      : withoutDialogs(currentState);
+
     const returnUrl: string = buildRouteUrl(baseState);
+
     const historyMode: 'push' | 'replace' =
       currentState.authMode === undefined ? 'push' : 'replace';
+
     const historyState: HistoryEntryState =
-      historyMode === 'replace' ? getCurrentHistoryState() : { dialogEntry: true, returnUrl };
+      historyMode === 'replace'
+        ? getCurrentHistoryState()
+        : {
+            dialogEntry: true,
+            returnUrl,
+          };
+
     commit(
       {
         ...baseState,
@@ -252,13 +309,19 @@ export function createRouter(): AppRouter {
       return;
     }
 
-    commit(withoutDialogs(currentState), 'replace');
+    const nextState: AppRouteState =
+      currentState.authMode !== undefined && currentState.gameSlug !== undefined
+        ? withoutAuthDialog(currentState)
+        : withoutDialogs(currentState);
+
+    commit(nextState, 'replace');
   };
 
   const subscribe: (listener: RouteListener) => () => void = (
     listener: RouteListener,
   ): (() => void) => {
     listeners.add(listener);
+
     return (): void => {
       listeners.delete(listener);
     };
@@ -271,11 +334,14 @@ export function createRouter(): AppRouter {
 
     hasStarted = true;
     currentState = parseRoute();
+
     history.replaceState(history.state, '', location.href);
+
     addEventListener('popstate', (): void => {
       currentState = parseRoute();
       notify();
     });
+
     notify();
   };
 
