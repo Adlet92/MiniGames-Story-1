@@ -43,7 +43,6 @@ function toAuthMode(mode: AuthRouteMode): AuthMode {
 }
 
 function initializeApp(): void {
-
   initializeFirebase();
 
   const app: HTMLDivElement = document.createElement('div');
